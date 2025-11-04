@@ -1,11 +1,13 @@
-package cersei.javasite.services.twitch;
+package cersei.twitchservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class TwitchApplication {
+public class TwitchServiceApplication {
+
     public static void main(String[] args) {
-        SpringApplication.run(TwitchApplication.class, args);
+        SpringApplication.run(TwitchServiceApplication.class, args);
     }
+
 }
