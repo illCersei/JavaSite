@@ -5,6 +5,8 @@ import cersei.auth.repository.UserRepository;
 import com.fasterxml.jackson.core.PrettyPrinter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,9 +15,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public void saveUser(User user) {
+        user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
         userRepository.save(user);
     }
 
