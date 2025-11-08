@@ -4,6 +4,8 @@ import cersei.twitchservice.dto.ViewerDto;
 import cersei.twitchservice.model.Viewer;
 import cersei.twitchservice.service.ViewerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +19,9 @@ public class ViewerController {
     private final ViewerService viewerService;
 
     @GetMapping
-    public List<ViewerDto> getAllViewers() {
-        return viewerService.findAll();
+    public List<ViewerDto> getAllViewers(
+            @PageableDefault(page = 0, size = 10000)
+            Pageable pageable) {
+        return viewerService.findAll(pageable);
     }
 }
