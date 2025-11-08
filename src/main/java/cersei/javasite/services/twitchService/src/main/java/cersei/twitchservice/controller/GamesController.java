@@ -1,5 +1,6 @@
 package cersei.twitchservice.controller;
 
+import cersei.twitchservice.dto.GamesDto;
 import cersei.twitchservice.model.Games;
 import cersei.twitchservice.service.GamesService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class GamesController {
     private final GamesService gamesService;
 
     @GetMapping
-    public List<Games> getAllGames() {
+    public List<GamesDto> getAllGames() {
         return gamesService.findAll();
     }
 }

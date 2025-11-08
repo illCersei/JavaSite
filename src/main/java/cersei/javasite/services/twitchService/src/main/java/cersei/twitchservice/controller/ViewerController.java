@@ -1,5 +1,6 @@
 package cersei.twitchservice.controller;
 
+import cersei.twitchservice.dto.ViewerDto;
 import cersei.twitchservice.model.Viewer;
 import cersei.twitchservice.service.ViewerService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class ViewerController {
     private final ViewerService viewerService;
 
     @GetMapping
-    public List<Viewer> getAllViewers() {
+    public List<ViewerDto> getAllViewers() {
         return viewerService.findAll();
     }
 }
