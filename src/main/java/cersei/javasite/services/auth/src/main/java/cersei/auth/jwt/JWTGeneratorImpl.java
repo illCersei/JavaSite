@@ -35,7 +35,7 @@ public class JWTGeneratorImpl implements JWTGenerator {
 
         Map<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", jwtToken);
-        tokenMap.put("user", user.getUsername());
+        tokenMap.put("message", message);
         return tokenMap;
     }
 
