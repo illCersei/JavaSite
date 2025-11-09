@@ -2,14 +2,14 @@ package cersei.auth.service;
 
 import cersei.auth.dto.UserLoginDto;
 import cersei.auth.dto.UserRegisterDto;
+import cersei.auth.exception.AuthException;
 import cersei.auth.jwt.JWTGeneratorImpl;
 import cersei.auth.model.User;
 import cersei.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -40,13 +40,14 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Map<String, String> login(UserLoginDto userloginDto) {
         User user = userRepository.findByUsername(userloginDto.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("Неверные данные для логина"));
+                .orElseThrow(() -> new AuthException("Неверные данные для логина", HttpStatus.UNAUTHORIZED));
 
         if (!passwordEncoder.matches(userloginDto.getPassword(), user.getPassword())) {
-            throw new UsernameNotFoundException("Неверные данные для логина");
+            throw new AuthException("Неверные данные для логина", HttpStatus.UNAUTHORIZED);
         }
 
-        return jwtGenerator.generateToken(user);
+        String token = jwtGenerator.generateToken(user);
+        return Map.of("token", token, "message", "Login success");
     }
 
 

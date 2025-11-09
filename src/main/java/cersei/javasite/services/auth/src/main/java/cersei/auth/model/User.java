@@ -2,7 +2,6 @@ package cersei.auth.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 @Data
 @Entity
