@@ -11,4 +11,9 @@ public class Controller {
     public ResponseEntity<String> hello(){
         return ResponseEntity.ok("Hello World");
     }
+
+    @GetMapping("/admin")
+    public ResponseEntity<String> admin(){
+        return ResponseEntity.ok("Вы одмен");
+    }
 }
