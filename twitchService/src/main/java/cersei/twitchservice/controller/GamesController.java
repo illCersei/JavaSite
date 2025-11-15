@@ -1,7 +1,6 @@
 package cersei.twitchservice.controller;
 
 import cersei.twitchservice.dto.GamesDto;
-import cersei.twitchservice.model.Games;
 import cersei.twitchservice.service.GamesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

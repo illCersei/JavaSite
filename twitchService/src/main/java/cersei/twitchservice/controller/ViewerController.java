@@ -1,7 +1,6 @@
 package cersei.twitchservice.controller;
 
 import cersei.twitchservice.dto.ViewerDto;
-import cersei.twitchservice.model.Viewer;
 import cersei.twitchservice.service.ViewerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
