@@ -22,7 +22,7 @@ public class JWTGeneratorImpl implements JWTGenerator {
     @Override
     public String generateToken(User user) {
         Key key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        return Jwts.builder()
+        return "Bearer " + Jwts.builder()
                 .claims(Map.of(
                         "sub", user.getUsername(),
                         "role", user.getRole()
