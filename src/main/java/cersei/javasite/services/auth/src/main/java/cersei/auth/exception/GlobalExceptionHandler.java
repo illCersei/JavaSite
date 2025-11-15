@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UnrecognizedPropertyException.class)
-    public ResponseEntity<ApiErrorResponse> handleUnknownFieldException(UnrecognizedPropertyException ex) {
+    public ResponseEntity<ApiErrorResponse> handleUnknownFieldException() {
         ApiError error = new ApiError(
                 ErrorCode.BAD_REQUEST_BODY.getCode(),
                 "Несоответствие ожидаемой структуре запроса",
