@@ -7,6 +7,6 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class ApiErrorResponse {
-    private List<ApiError> errors;
+public class ApiLoginErrorResponse {
+    private List<ApiLoginError> errors;
 }

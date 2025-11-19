@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ApiError {
+public class ApiLoginError {
     private int code;
     private String message;
     private String field;

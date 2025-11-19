@@ -1,7 +1,7 @@
 package cersei.auth.exception;
 
-import cersei.auth.error.ApiError;
-import cersei.auth.error.ApiErrorResponse;
+import cersei.auth.error.ApiLoginError;
+import cersei.auth.error.ApiLoginErrorResponse;
 import cersei.auth.error.ErrorCode;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import org.springframework.http.HttpStatus;
@@ -16,35 +16,35 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(AuthException.class)
-    public ResponseEntity<ApiErrorResponse> handlerAuthException(AuthException ex) {
-        ApiError error = new ApiError(
+    public ResponseEntity<ApiLoginErrorResponse> handlerAuthException(AuthException ex) {
+        ApiLoginError error = new ApiLoginError(
                 ErrorCode.INVALID_CREDENTIALS.getCode(),
                 ex.getMessage(),
                 null
         );
         return ResponseEntity.
                 status(ex.getHttpStatus()).
-                body(new ApiErrorResponse(List.of(error)));
+                body(new ApiLoginErrorResponse(List.of(error)));
     }
 
     @ExceptionHandler(UnrecognizedPropertyException.class)
-    public ResponseEntity<ApiErrorResponse> handleUnknownFieldException() {
-        ApiError error = new ApiError(
+    public ResponseEntity<ApiLoginErrorResponse> handleUnknownFieldException() {
+        ApiLoginError error = new ApiLoginError(
                 ErrorCode.BAD_REQUEST_BODY.getCode(),
                 "Несоответствие ожидаемой структуре запроса",
                 null
         );
         return ResponseEntity.
                 status(HttpStatus.BAD_REQUEST)
-                .body(new ApiErrorResponse(List.of(error)));
+                .body(new ApiLoginErrorResponse(List.of(error)));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        List<ApiError> errors = ex.getBindingResult()
+        List<ApiLoginError> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(fieldError -> new ApiError(
+                .map(fieldError -> new ApiLoginError(
                         ErrorCode.VALIDATION_ERROR.getCode(),
                         fieldError.getDefaultMessage(),
                         fieldError.getField()
