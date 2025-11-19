@@ -5,11 +5,9 @@ import cersei.twitchservice.model.Viewer;
 import cersei.twitchservice.repository.ViewerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -17,10 +15,9 @@ import java.util.stream.Collectors;
 public class ViewerService {
     private final ViewerRepository viewerRepository;
 
-    public List<ViewerDto> findAll(Pageable pageable) {
-        return viewerRepository.findAll(pageable).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public Page<ViewerDto> findAll(Pageable pageable) {
+        return viewerRepository.findAll(pageable)
+                .map(this::toDto);
     }
 
     private ViewerDto toDto(Viewer viewer){

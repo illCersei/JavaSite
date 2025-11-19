@@ -45,7 +45,7 @@ public class AuthController {
                             responseCode = "400",
                             description = "Пользователь с таким именем уже существует",
                             content = @Content(
-                                    schema = @Schema(implementation = RegisterOkDto.class)
+                                    schema = @Schema(implementation = RegisterBadDto.class)
                             )
                     )
             }

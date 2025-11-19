@@ -5,10 +5,9 @@ import cersei.twitchservice.model.Games;
 import cersei.twitchservice.repository.GamesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -16,16 +15,15 @@ import java.util.stream.Collectors;
 public class GamesService {
     private final GamesRepository gamesRepository;
 
-    public List<GamesDto> findAll(){
-        return gamesRepository.findAll().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public Page<GamesDto> findAll(Pageable pageable) {
+        return gamesRepository.findAll(pageable)
+                .map(this::toDto);
     }
 
     private GamesDto toDto(Games games){
         GamesDto dto = new GamesDto();
-        dto.setId(games.getGameId());
-        dto.setName(games.getGameName());
+        dto.setGameId(games.getGameId());
+        dto.setGameName(games.getGameName());
 
         return dto;
     }
