@@ -2,6 +2,7 @@ package cersei.auth.controller;
 
 import cersei.auth.dto.*;
 import cersei.auth.error.ApiLoginErrorResponse;
+import cersei.auth.exception.AuthException;
 import cersei.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -86,7 +87,7 @@ public class AuthController {
             }
     )
     @PostMapping("/login")
-    public ResponseEntity<LoginOkResponseDto> login(@RequestBody @Valid UserLoginDto userLoginDto) {
+    public ResponseEntity<LoginOkResponseDto> login(@RequestBody @Valid UserLoginDto userLoginDto) throws AuthException {
         Map<String, String> token = authService.login(userLoginDto);
         return ResponseEntity.ok(new LoginOkResponseDto(token));
     }

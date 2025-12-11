@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: twitchService
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/twitch_monitor
+    username: postgres
+    password: 7557
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  mvc:
+    servlet:
+      path: /api/v1
+
+server:
+  port: 8081
+
+logging:
+  level:
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    cersei.twitchservice: DEBUG
+  file:
+    name: logs/twitchservice.log
