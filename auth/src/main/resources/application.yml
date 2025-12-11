@@ -25,6 +25,12 @@ spring:
     deserialization:
       fail-on-unknown-properties: true  # Ожидает ошибку, если встречаются неизвестные свойства в JSON
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
 jwt:
   secret: AHHAHAHAHAHHAHJSDBGJHKSDABG232234FSHKFJHS  #
   expiration: 3600000

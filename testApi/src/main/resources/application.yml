@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: testApi
+
+  mvc:
+    servlet:
+      path: /api/v1/test
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+server:
+  port: 8800
+
+jwt:
+  secret: AHHAHAHAHAHHAHJSDBGJHKSDABG232234FSHKFJHS
+

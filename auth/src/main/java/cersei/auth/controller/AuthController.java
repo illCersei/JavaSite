@@ -3,6 +3,7 @@ package cersei.auth.controller;
 import cersei.auth.dto.*;
 import cersei.auth.error.ApiLoginErrorResponse;
 import cersei.auth.exception.AuthException;
+import cersei.auth.messaging.RabbitAuthMessagingService;
 import cersei.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,6 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final RabbitAuthMessagingService rabbitAuthMessagingService;
 
     @Operation(
             summary = "Регистрация пользователя",
@@ -89,6 +91,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginOkResponseDto> login(@RequestBody @Valid UserLoginDto userLoginDto) throws AuthException {
         Map<String, String> token = authService.login(userLoginDto);
+        rabbitAuthMessagingService.successLogin("Успешный логин " + userLoginDto.getUsername());
         return ResponseEntity.ok(new LoginOkResponseDto(token));
     }
 
