@@ -20,6 +20,14 @@ spring:
     servlet:
       path: /api/v1
 
+  cache:
+    type: redis
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 server:
   port: 8081
 

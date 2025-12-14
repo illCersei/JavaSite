@@ -9,15 +9,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ViewerService {
     private final ViewerRepository viewerRepository;
 
-    public Page<ViewerDto> findAll(Pageable pageable) {
+    public Page<ViewerDto> findAllPageable(Pageable pageable) {
         return viewerRepository.findAll(pageable)
                 .map(this::toDto);
+    }
+
+    public List<ViewerDto> findAll() {
+        return viewerRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     private ViewerDto toDto(Viewer viewer){
