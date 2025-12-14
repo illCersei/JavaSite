@@ -34,7 +34,7 @@ public class ViewerService {
         dto.setId(viewer.getId());
         dto.setViewers(viewer.getViewers());
         dto.setDateTime(viewer.getDateTime());
-        dto.setId(viewer.getId());
+        dto.setGameId(viewer.getGameId());
 
         return dto;
     }

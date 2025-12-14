@@ -60,7 +60,7 @@ public class ViewerController {
             }
     )
     @GetMapping("/paginated")
-    @Cacheable(value = "ViewersPaginated", key = "#pageable.pageNumber" + "-" + "#pageable.pageSize")
+    @Cacheable(value = "ViewersPaginated", key = "#pageable.pageNumber + '_' + #pageable.pageSize")
     public List<ViewerDto> getPaginatedViewers(
         @PageableDefault(page = 0, size = 10000)
         @Parameter(hidden = true) Pageable pageable) {

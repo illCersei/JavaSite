@@ -13,6 +13,6 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Twitch Service API")
                         .version("1.0")
-                        .description("API просмотра собранных данных о играх и их просмотрах с сайта twitch.tv"));
+                        .description("API просмотра собранных данных об играх и их просмотрах с сайта twitch.tv"));
     }
 }
