@@ -11,6 +11,7 @@
         <module>testApi</module>
         <module>twitchService</module>
         <module>common</module>
+        <module>newYearService</module>
     </modules>
 
     <parent>

@@ -40,3 +40,7 @@ application.properties
 
 *.env
 .env
+
+/front/
+
+*.gz
