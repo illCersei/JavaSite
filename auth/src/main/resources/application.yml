@@ -3,9 +3,9 @@ spring:
     name: auth
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/twitch_monitor
-    username: postgres
-    password: 7557
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -20,19 +20,18 @@ spring:
     servlet:
       path: /api/v1/auth
 
-# Настройки обработки JSON
   jackson:
     deserialization:
-      fail-on-unknown-properties: true  # Ожидает ошибку, если встречаются неизвестные свойства в JSON
+      fail-on-unknown-properties: true
 
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+    host: ${SPRING_RABBITMQ_HOST}
+    port: ${SPRING_RABBITMQ_PORT}
+    username: ${SPRING_RABBITMQ_USERNAME}
+    password: ${SPRING_RABBITMQ_PASSWORD}
 
 jwt:
-  secret: AHHAHAHAHAHHAHJSDBGJHKSDABG232234FSHKFJHS  #
+  secret: ${JWT_SECRET}
   expiration: 3600000
 
 logging:
@@ -43,3 +42,5 @@ logging:
   file:
     name: logs/auth.log
 
+server:
+  port: ${SERVER_PORT}

@@ -37,3 +37,6 @@ application.properties
 
 #Logs
 *.log
+
+*.env
+.env

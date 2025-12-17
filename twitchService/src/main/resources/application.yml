@@ -3,9 +3,9 @@ spring:
     name: twitchService
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/twitch_monitor
-    username: postgres
-    password: 7557
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -25,11 +25,11 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
 
 server:
-  port: 8081
+  port: ${SERVER_PORT}
 
 logging:
   level:

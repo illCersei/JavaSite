@@ -7,14 +7,13 @@ spring:
       path: /api/v1/test
 
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
 server:
-  port: 8800
+  port: ${SERVER_PORT:8000}
 
 jwt:
-  secret: AHHAHAHAHAHHAHJSDBGJHKSDABG232234FSHKFJHS
-
+  secret: ${JWT_SECRET:AHHAHAHAHAHHAHJSDBGJHKSDABG232234FSHKFJHS}
