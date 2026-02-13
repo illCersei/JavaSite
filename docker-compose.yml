@@ -3,8 +3,6 @@ services:
     image: redis:7-alpine
     container_name: redis_container
     restart: always
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -17,9 +15,6 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq_container
     restart: always
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: ${SPRING_RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${SPRING_RABBITMQ_PASSWORD}
@@ -90,28 +85,6 @@ services:
       SPRING_RABBITMQ_USERNAME: ${SPRING_RABBITMQ_USERNAME}
       SPRING_RABBITMQ_PASSWORD: ${SPRING_RABBITMQ_PASSWORD}
     depends_on:
-      - rabbitmq
-
-  newyear_service:
-    build:
-      context: .
-      dockerfile: newYearService/Dockerfile
-    container_name: newyear_service
-    restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "8004:${SERVER_PORT}"
-    environment:
-      SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
-      SPRING_DATASOURCE_USERNAME: ${DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-    volumes:
-      - ./logs:/app/logs
-    depends_on:
-      - redis
       - rabbitmq
 
 volumes:
