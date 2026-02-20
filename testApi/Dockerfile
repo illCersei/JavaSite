@@ -7,7 +7,7 @@ COPY auth/pom.xml auth/pom.xml
 COPY testApi/pom.xml testApi/pom.xml
 COPY twitchService/pom.xml twitchService/pom.xml
 COPY common/pom.xml common/pom.xml
-COPY newYearService/pom.xml newYearService/pom.xml
+COPY profile/pom.xml profile/pom.xml
 RUN mvn -B -q dependency:go-offline
 
 # Копируем код проекта

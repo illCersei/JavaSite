@@ -31,18 +31,3 @@ build/
 
 ### VS Code ###
 .vscode/
-
-### Мои ###
-application.properties
-
-#Logs
-*.log
-
-*.env
-.env
-
-/front/
-
-*.gz
-
-application-local.yml

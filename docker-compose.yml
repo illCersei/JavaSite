@@ -87,6 +87,22 @@ services:
     depends_on:
       - rabbitmq
 
+  profile_service:
+    build:
+      context: .
+      dockerfile: profile/Dockerfile
+    container_name: profile_service
+    restart: always
+    ports:
+      - "8004:${SERVER_PORT}"
+    environment:
+      SERVER_PORT: ${SERVER_PORT}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
+      SPRING_RABBITMQ_USERNAME: ${SPRING_RABBITMQ_USERNAME}
+      SPRING_RABBITMQ_PASSWORD: ${SPRING_RABBITMQ_PASSWORD}
+
+
 volumes:
   redis_data:
   rabbitmq_data:

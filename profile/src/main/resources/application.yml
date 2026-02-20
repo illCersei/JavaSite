@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: profile
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  mvc:
+    servlet:
+      path: /api/v1/profile
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 3600000
+
+logging:
+  level:
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    cersei.twitchservice: DEBUG
+  file:
+    name: logs/auth.log
+
+server:
+  port: ${SERVER_PORT}
