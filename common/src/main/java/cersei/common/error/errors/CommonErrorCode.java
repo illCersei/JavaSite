@@ -1,5 +1,6 @@
-package cersei.errors;
+package cersei.common.error.errors;
 
+//Вот это нужно использовать потом
 public enum CommonErrorCode {
     VALIDATION_ERROR,
     BAD_REQUEST_BODY,
@@ -8,4 +9,6 @@ public enum CommonErrorCode {
     FORBIDDEN,
     NOT_FOUND,
     CONFLICT
+
+    
 }

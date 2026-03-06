@@ -34,7 +34,7 @@ logging:
     org.hibernate.SQL: DEBUG
     cersei.twitchservice: DEBUG
   file:
-    name: logs/auth.log
+    name: logs/profile.log
 
 server:
   port: ${SERVER_PORT}

@@ -1,4 +1,4 @@
-package cersei.error;
+package cersei.common.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

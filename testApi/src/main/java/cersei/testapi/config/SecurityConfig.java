@@ -1,8 +1,8 @@
 package cersei.testapi.config;
 
-import cersei.error.CustomAccessDeniedHandler;
-import cersei.error.CustomBearerTokenAuthenticationEntryPoint;
-import cersei.jwt.JwtAuthenticationConverterConfig;
+import cersei.common.error.CustomAccessDeniedHandler;
+import cersei.common.error.CustomBearerTokenAuthenticationEntryPoint;
+import cersei.common.error.jwt.JwtAuthenticationConverterConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
