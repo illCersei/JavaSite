@@ -24,7 +24,7 @@ public class AuthServiceImpl implements AuthService {
     private final RabbitAuthMessagingService rabbitAuthMessagingService;
 
     @Override
-    public void register(UserRegisterDto userRegisterDto) {
+    public User register(UserRegisterDto userRegisterDto) {
         if (userRepository.existsByUsername(userRegisterDto.getUsername())) {
             throw new AuthException("Пользователь с таким логином существует", HttpStatus.CONFLICT);
         }
@@ -36,6 +36,8 @@ public class AuthServiceImpl implements AuthService {
         user.setRole("USER");
 
         userRepository.save(user);
+
+        return user;
     }
 
     @Override
