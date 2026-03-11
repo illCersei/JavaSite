@@ -1,13 +1,16 @@
 package cersei.profile.model;
 
 import jakarta.persistence.*;
-import cersei.auth.model.User;
+import lombok.Data;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Data
 @Entity(name = "user_profile")
-public class UserProfile {
+@DynamicUpdate
+public class UserProfileModel {
     @Id
     @Column(name = "user_id")
     private UUID userId;
@@ -21,7 +24,7 @@ public class UserProfile {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Version
-    @Column(nullable = false)
-    private int version;
+//    @Version
+//    @Column(nullable = false)
+//    private int version;
 }

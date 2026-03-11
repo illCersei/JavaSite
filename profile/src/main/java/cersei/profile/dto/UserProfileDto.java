@@ -1,13 +1,12 @@
 package cersei.profile.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.Version;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@AllArgsConstructor
 @Data
 public class UserProfileDto {
     private UUID userId;
