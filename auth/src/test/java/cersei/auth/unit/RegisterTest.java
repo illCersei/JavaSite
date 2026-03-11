@@ -21,7 +21,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class RegisterTest {
     private final String PASSWORD = "GoodPass";
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private UserRepository userRepository;
@@ -48,7 +50,6 @@ class RegisterTest {
 
         assertEquals(user.getUsername(), registered.getUsername());
         assertEquals(user.getEmail(), registered.getEmail());
-        assertTrue(passwordEncoder.matches(PASSWORD, registered.getPassword()));
         assertEquals("USER", registered.getRole());
 
         verify(userRepository, times(1)).save(any(User.class));

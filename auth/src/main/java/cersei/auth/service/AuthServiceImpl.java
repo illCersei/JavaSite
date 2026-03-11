@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
     private final JWTGeneratorImpl jwtGenerator;
     private final RabbitAuthMessagingService rabbitAuthMessagingService;
 
