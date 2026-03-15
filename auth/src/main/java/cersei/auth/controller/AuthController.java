@@ -1,10 +1,8 @@
 package cersei.auth.controller;
 
-import cersei.auth.dto.LoginOkResponseDto;
-import cersei.auth.dto.RegisterOkDto;
-import cersei.auth.dto.UserLoginDto;
-import cersei.auth.dto.UserRegisterDto;
+import cersei.auth.dto.*;
 import cersei.auth.service.AuthService;
+import cersei.auth.service.RefreshTokenService;
 import cersei.common.error.errors.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private  final RefreshTokenService refreshTokenService;
 
     @Operation(
             summary = "Регистрация пользователя",
@@ -86,5 +85,16 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginOkResponseDto> login(@RequestBody @Valid UserLoginDto dto) {
         return ResponseEntity.ok(authService.login(dto));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginOkResponseDto> refresh(@RequestBody RefreshTokenDto dto) {
+        return ResponseEntity.ok(authService.refresh(dto));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestBody RefreshTokenDto dto) {
+        refreshTokenService.delete(dto.getRefreshToken());
+        return ResponseEntity.ok("Logouted, токен удален");
     }
 }

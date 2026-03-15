@@ -1,16 +1,17 @@
 package cersei.auth.service;
 
 import cersei.auth.dto.LoginOkResponseDto;
+import cersei.auth.dto.RefreshTokenDto;
 import cersei.auth.dto.UserLoginDto;
 import cersei.auth.dto.UserRegisterDto;
 import cersei.auth.exception.AuthException;
 import cersei.auth.jwt.JWTGeneratorImpl;
 import cersei.auth.messaging.RabbitAuthMessagingService;
+import cersei.auth.model.RefreshToken;
 import cersei.auth.model.User;
 import cersei.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JWTGeneratorImpl jwtGenerator;
     private final RabbitAuthMessagingService rabbitAuthMessagingService;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public User register(UserRegisterDto userRegisterDto) {
@@ -42,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginOkResponseDto login(UserLoginDto userLoginDto) {
+
         User user = userRepository.findByUsername(userLoginDto.getUsername())
                 .orElseThrow(() -> {
                     rabbitAuthMessagingService.failureLogin("Неуспешный логин " + userLoginDto.getUsername());
@@ -53,9 +56,23 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthException("Неверные данные для логина", HttpStatus.UNAUTHORIZED);
         }
 
-        String token = jwtGenerator.generateToken(user);
+        String accessToken = jwtGenerator.generateToken(user);
+        String refreshToken = refreshTokenService.create(user.getUserId());
+
         rabbitAuthMessagingService.successLogin("Успешный логин " + userLoginDto.getUsername());
 
-        return new LoginOkResponseDto("Login success", token);
+        return new LoginOkResponseDto("Login success", accessToken, refreshToken);
+    }
+
+    @Override
+    public LoginOkResponseDto refresh(RefreshTokenDto dto) {
+        RefreshToken refreshToken = refreshTokenService.validate(dto.getRefreshToken());
+
+        User user = userRepository.findById(refreshToken.getUserId())
+                .orElseThrow(() -> new AuthException("Пользователь не найден", HttpStatus.UNAUTHORIZED));
+
+        String accessToken = jwtGenerator.generateToken(user);
+
+        return new LoginOkResponseDto("Token refreshed", accessToken, dto.getRefreshToken());
     }
 }
