@@ -5,6 +5,8 @@ import cersei.profile.dto.UserProfileCreateDto;
 import cersei.profile.dto.UserProfileDto;
 import cersei.profile.service.UserProfileImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -15,25 +17,35 @@ import java.util.UUID;
 public class UserProfileController {
     private final UserProfileImpl userProfileService;
 
-    @GetMapping("/get/{userId}")
-    UserProfileDto getProfile(@PathVariable UUID userId){
+    //Нужно сделать пабликПрофильДто
+    @GetMapping("/public/get/{userId}")
+    UserProfileDto getPublicProfile(@PathVariable UUID userId){
         return userProfileService.getProfile(userId);
     }
 
-    @PatchMapping("/update/{userId}")
-    UserProfileDto changeProfile(@RequestBody UserProfileChangeDto dto,
-                                 @PathVariable UUID userId){
-        return userProfileService.changeProfile(userId, dto);
+    @GetMapping("/private/get/me")
+    UserProfileDto getProfile(@AuthenticationPrincipal Jwt jwt){
+        UUID uuid = UUID.fromString(jwt.getClaimAsString("uuid"));
+        return userProfileService.getProfile(uuid);
     }
 
-    @PostMapping("/create/{userId}")
-    UserProfileDto createProfile(@RequestBody UserProfileCreateDto dto,
-                                 @PathVariable UUID userId){
-        return userProfileService.createProfile(userId, dto);
+    @PatchMapping("/private/update/me")
+    UserProfileDto changeProfile(@AuthenticationPrincipal Jwt jwt,
+                                 @RequestBody UserProfileChangeDto dto){
+        UUID uuid = UUID.fromString(jwt.getClaimAsString("uuid"));
+        return userProfileService.changeProfile(uuid, dto);
     }
 
-    @DeleteMapping("/delete/{userId}")
-    void deleteProfile(@PathVariable UUID userId){
-        userProfileService.deleteProfile(userId);
+    @PostMapping("/private/create/me")
+    UserProfileDto createProfile(@AuthenticationPrincipal Jwt jwt,
+                                 @RequestBody UserProfileCreateDto dto){
+        UUID uuid = UUID.fromString(jwt.getClaimAsString("uuid"));
+        return userProfileService.createProfile(uuid, dto);
+    }
+
+    @DeleteMapping("/private/delete/me")
+    void deleteProfile(@AuthenticationPrincipal Jwt jwt){
+        UUID uuid = UUID.fromString(jwt.getClaimAsString("uuid"));
+        userProfileService.deleteProfile(uuid);
     }
 }
