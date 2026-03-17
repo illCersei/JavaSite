@@ -7,19 +7,24 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "users_test")
+@Table(
+        name = "users_test",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
+                @UniqueConstraint(name = "uk_user_username", columnNames = "username")
+        }
+)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String username;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(unique = true)
     private String email;
 
     private String role;
