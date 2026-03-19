@@ -11,10 +11,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.sql.Ref;
 
 @Tag(name = "Методы")
 @RestController
@@ -84,11 +85,17 @@ public class AuthController {
     )
     @PostMapping("/login")
     public ResponseEntity<LoginOkResponseDto> login(@RequestBody @Valid UserLoginDto dto) {
-        return ResponseEntity.ok(authService.login(dto));
+        LoginOkResponseDto response = authService.login(dto);
+        String refreshToken = response.getRefreshToken();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, "refreshToken=" + refreshToken + "; HttpOnly; Secure; Path=/; Max-Age=" + (7 * 24 * 60 * 60))
+                .body(response);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<LoginOkResponseDto> refresh(@RequestBody RefreshTokenDto dto) {
+    public ResponseEntity<LoginOkResponseDto> refresh(@CookieValue("refreshToken") String token) {
+        RefreshTokenDto dto = new RefreshTokenDto(token);
         return ResponseEntity.ok(authService.refresh(dto));
     }
 

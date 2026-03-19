@@ -5,6 +5,7 @@ import cersei.auth.dto.UserLoginDto;
 import cersei.auth.exception.AuthException;
 import cersei.auth.jwt.JWTGeneratorImpl;
 import cersei.auth.messaging.RabbitAuthMessagingService;
+import cersei.auth.service.RefreshTokenService;
 import cersei.auth.model.User;
 import cersei.auth.repository.UserRepository;
 import cersei.auth.service.AuthServiceImpl;
@@ -37,6 +38,9 @@ public class LoginTest {
 
     @Mock
     private RabbitAuthMessagingService rabbitAuthMessagingService;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
     AuthServiceImpl authService;
