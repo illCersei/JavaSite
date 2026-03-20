@@ -28,81 +28,9 @@ public class ViewerController {
 
     private final ViewerService viewerService;
 
-    @Operation(
-            summary = "Получить список зрителей",
-            description = "Возвращает страницу зрителей.",
-            parameters = {
-                    @Parameter(
-                            name = "page",
-                            description = "Номер страницы (нумерация с 0)",
-                            example = "0"
-                    ),
-                    @Parameter(
-                            name = "size",
-                            description = "Количество элементов на странице",
-                            example = "20"
-                    ),
-                    @Parameter(
-                            name = "sort",
-                            description = "Параметры сортировки. Формат: field,asc|desc. Пример: dateTime,desc",
-                            example = "dateTime,desc"
-                    )
-            },
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Страница зрителей успешно получена",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = PageViewerDto.class)
-                            )
-                    )
-            }
-    )
-    @GetMapping("/paginated")
-    @Cacheable(value = "ViewersPaginated", key = "#pageable.pageNumber + '_' + #pageable.pageSize")
-    public List<ViewerDto> getPaginatedViewers(
-        @PageableDefault(page = 0, size = 10000)
-        @Parameter(hidden = true) Pageable pageable) {
-
-        return viewerService.findAllPageable(pageable).getContent();
-    }
-
-
-    @Operation(
-            summary = "Получить список всех зрителей",
-            description = "Возвращает список зрителей.",
-            parameters = {
-                    @Parameter(
-                            name = "page",
-                            description = "Номер страницы (нумерация с 0)",
-                            example = "0"
-                    ),
-                    @Parameter(
-                            name = "size",
-                            description = "Количество элементов на странице",
-                            example = "20"
-                    ),
-                    @Parameter(
-                            name = "sort",
-                            description = "Параметры сортировки. Формат: field,asc|desc. Пример: dateTime,desc",
-                            example = "dateTime,desc"
-                    )
-            },
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Страница зрителей успешно получена",
-                            content = @Content(
-                                    mediaType = "application/json",
-                                    schema = @Schema(implementation = PageViewerDto.class)
-                            )
-                    )
-            }
-    )
     @Cacheable(value = "ViewersCache", key = "'fixed'")
     @GetMapping("/all")
     public List<ViewerDto> getAllViewers() {
-        return viewerService.findAll();
+        return viewerService.findMaxViewersByDay();
     }
 }

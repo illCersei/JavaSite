@@ -32,7 +32,7 @@ logging:
   level:
     org.springframework: INFO
     org.hibernate.SQL: DEBUG
-    cersei.twitchservice: DEBUG
+    cersei.profile: DEBUG
   file:
     name: logs/profile.log
 

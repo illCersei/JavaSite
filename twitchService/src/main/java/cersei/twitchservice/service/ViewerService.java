@@ -17,25 +17,7 @@ import java.util.List;
 public class ViewerService {
     private final ViewerRepository viewerRepository;
 
-    public Page<ViewerDto> findAllPageable(Pageable pageable) {
-        return viewerRepository.findAll(pageable)
-                .map(this::toDto);
-    }
-
-    public List<ViewerDto> findAll() {
-        return viewerRepository.findAll()
-                .stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    private ViewerDto toDto(Viewer viewer){
-        ViewerDto dto = new ViewerDto();
-        dto.setId(viewer.getId());
-        dto.setViewers(viewer.getViewers());
-        dto.setDateTime(viewer.getDateTime());
-        dto.setGameId(viewer.getGameId());
-
-        return dto;
+    public List<ViewerDto> findMaxViewersByDay() {
+        return viewerRepository.findMaxViewersGroupedByDay();
     }
 }
