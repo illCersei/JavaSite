@@ -100,8 +100,12 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestBody RefreshTokenDto dto) {
+    public ResponseEntity<String> logout(@CookieValue("refreshToken") String token) {
+        RefreshTokenDto dto = new RefreshTokenDto(token);
         refreshTokenService.delete(dto.getRefreshToken());
-        return ResponseEntity.ok("Logouted, токен удален");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, "refreshToken=; HttpOnly; Secure; Path=/; Max-Age=0")
+                .body("Loggedout");
     }
 }
