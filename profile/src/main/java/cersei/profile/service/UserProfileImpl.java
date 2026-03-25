@@ -87,6 +87,23 @@ public class UserProfileImpl implements UserProfile{
         );
     }
 
+
+    /**
+     * Создаем пустой профиль, который нам передает кафка при регситрации
+     * @param userId приходит в сообщении кафки
+     */
+    @Override
+    public void createEmptyProfile(UUID userId) {
+        UserProfileModel userProfileModel = new UserProfileModel();
+
+        userProfileModel.setUserId(userId);
+        userProfileModel.setNickname("tempname");
+        userProfileModel.setAvatarUrl(null);
+        userProfileModel.setCreatedAt(LocalDateTime.now());
+
+        userProfileRepository.save(userProfileModel);
+    }
+
     /**
      * Метод удаления профиля
      * @param userId

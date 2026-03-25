@@ -16,4 +16,6 @@ public interface UserProfile {
     //boolean profileExists(UUID userId);
 
     void deleteProfile(UUID userId);
+
+    void createEmptyProfile(UUID userId);
 }

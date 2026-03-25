@@ -30,6 +30,20 @@ spring:
     username: ${SPRING_RABBITMQ_USERNAME}
     password: ${SPRING_RABBITMQ_PASSWORD}
 
+  kafka:
+    bootstrap-servers: kafka_container:${SPRING_KAFKA_PORT}
+    consumer:
+      group-id: auth-consumer-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      missing-topics-fatal: false
+    template:
+      default-topic: user-registration
+
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000

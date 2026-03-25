@@ -1,5 +1,6 @@
 package cersei.auth.service;
 
+import cersei.auth.messaging.KafkaProducerService;
 import cersei.auth.dto.LoginOkResponseDto;
 import cersei.auth.dto.RefreshTokenDto;
 import cersei.auth.dto.UserLoginDto;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +26,10 @@ public class AuthServiceImpl implements AuthService {
     private final JWTGeneratorImpl jwtGenerator;
     private final RabbitAuthMessagingService rabbitAuthMessagingService;
     private final RefreshTokenService refreshTokenService;
+    private final KafkaProducerService kafkaProducerService;
 
     @Override
+    @Transactional
     public User register(UserRegisterDto userRegisterDto) {
         if (userRepository.existsByUsername(userRegisterDto.getUsername())) {
             throw new AuthException("Пользователь с таким логином существует", HttpStatus.CONFLICT);
@@ -38,6 +42,8 @@ public class AuthServiceImpl implements AuthService {
         user.setRole("USER");
 
         userRepository.save(user);
+
+        kafkaProducerService.sendUserRegistrationEvent(user);
 
         return user;
     }
