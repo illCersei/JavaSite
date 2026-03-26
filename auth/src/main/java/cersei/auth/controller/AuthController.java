@@ -11,11 +11,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.Uuid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Ref;
+import java.util.UUID;
 
 @Tag(name = "Методы")
 @RestController
@@ -25,65 +29,13 @@ public class AuthController {
     private final AuthService authService;
     private  final RefreshTokenService refreshTokenService;
 
-    @Operation(
-            summary = "Регистрация пользователя",
-            description = "Создаёт нового пользователя на основе переданных данных.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Данные для регистрации пользователя",
-                    required = true,
-                    content = @Content(schema = @Schema(implementation = UserRegisterDto.class))
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Регистрация прошла успешно",
-                            content = @Content(schema = @Schema(implementation = RegisterOkDto.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Ошибка валидации / некорректное тело запроса",
-                            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "409",
-                            description = "Пользователь с таким именем уже существует",
-                            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-                    )
-            }
-    )
-    @PostMapping("/register")
+    @PostMapping("/public/register")
     public ResponseEntity<RegisterOkDto> register(@RequestBody @Valid UserRegisterDto dto) {
         authService.register(dto);
         return ResponseEntity.ok(new RegisterOkDto());
     }
 
-    @Operation(
-            summary = "Авторизация пользователя",
-            description = "Принимает логин и пароль, выполняет авторизацию и возвращает JWT-токен.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Данные для входа пользователя",
-                    required = true,
-                    content = @Content(schema = @Schema(implementation = UserLoginDto.class))
-            ),
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Успешная авторизация",
-                            content = @Content(schema = @Schema(implementation = LoginOkResponseDto.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Ошибка валидации / некорректное тело запроса",
-                            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Неверные учетные данные",
-                            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-                    )
-            }
-    )
-    @PostMapping("/login")
+    @PostMapping("/public/login")
     public ResponseEntity<LoginOkResponseDto> login(@RequestBody @Valid UserLoginDto dto) {
         LoginOkResponseDto response = authService.login(dto);
         String refreshToken = response.getRefreshToken();
@@ -93,16 +45,32 @@ public class AuthController {
                 .body(response);
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/public/refresh")
     public ResponseEntity<LoginOkResponseDto> refresh(@CookieValue("refreshToken") String token) {
         RefreshTokenDto dto = new RefreshTokenDto(token);
         return ResponseEntity.ok(authService.refresh(dto));
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/public/logout")
     public ResponseEntity<String> logout(@CookieValue("refreshToken") String token) {
         RefreshTokenDto dto = new RefreshTokenDto(token);
         refreshTokenService.delete(dto.getRefreshToken());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, "refreshToken=; HttpOnly; Secure; Path=/; Max-Age=0")
+                .body("Loggedout");
+    }
+
+    @PatchMapping("/private/update")
+    public ResponseEntity<String> update(@AuthenticationPrincipal Jwt jwt,
+                                         @RequestBody AuthDataChangeDto dto,
+                                         @CookieValue("refreshToken") String token)
+    {
+        UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
+        authService.updateAuthData(userId, dto);
+
+        RefreshTokenDto tokenDto = new RefreshTokenDto(token);
+        refreshTokenService.delete(tokenDto.getRefreshToken());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, "refreshToken=; HttpOnly; Secure; Path=/; Max-Age=0")

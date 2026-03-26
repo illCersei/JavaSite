@@ -44,7 +44,7 @@ public class SecurityConfig {
                                            CustomAccessDeniedHandler accessHandler,
                                            JwtAuthenticationConverter jwtAuthConverter) throws Exception {
         http
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Explicit CORS configuration
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/public/**").permitAll()
@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(accessHandler))
-                .oauth2ResourceServer(resourceServer->
+                .oauth2ResourceServer(resourceServer ->
                         resourceServer
                                 .authenticationEntryPoint(entryPoint)
                                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter)));
@@ -65,7 +65,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

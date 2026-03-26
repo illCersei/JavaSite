@@ -1,10 +1,7 @@
 package cersei.auth.service;
 
+import cersei.auth.dto.*;
 import cersei.auth.messaging.KafkaProducerService;
-import cersei.auth.dto.LoginOkResponseDto;
-import cersei.auth.dto.RefreshTokenDto;
-import cersei.auth.dto.UserLoginDto;
-import cersei.auth.dto.UserRegisterDto;
 import cersei.auth.exception.AuthException;
 import cersei.auth.jwt.JWTGeneratorImpl;
 import cersei.auth.messaging.RabbitAuthMessagingService;
@@ -16,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
 
         rabbitAuthMessagingService.successLogin("Успешный логин " + userLoginDto.getUsername());
 
-        return new LoginOkResponseDto("Login success", accessToken, refreshToken);
+        return new LoginOkResponseDto("Login success", user.getUsername(), user.getEmail(), accessToken, refreshToken);
     }
 
     @Override
@@ -79,6 +78,30 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = jwtGenerator.generateToken(user);
 
-        return new LoginOkResponseDto("Token refreshed", accessToken, dto.getRefreshToken());
+        return new LoginOkResponseDto("Token refreshed", user.getUsername(), user.getEmail(), accessToken, dto.getRefreshToken());
+    }
+
+    @Override
+    public void updateAuthData(UUID userId, AuthDataChangeDto dto) {
+        User user = new User();
+        user.setUserId(userId);
+        user.setRole("USER");
+
+        if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
+            if (!user.getEmail().equals(dto.getEmail()) && userRepository.existsByEmail(dto.getEmail())) {
+                throw new RuntimeException("Email is already in use");
+            }
+            user.setEmail(dto.getEmail());
+        }
+
+        if (dto.getUsername() != null && !dto.getUsername().isEmpty()){
+            user.setUsername(dto.getUsername());
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()){
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        userRepository.save(user);
     }
 }

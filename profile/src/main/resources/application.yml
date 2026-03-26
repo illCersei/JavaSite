@@ -45,7 +45,7 @@ jwt:
 
 logging:
   level:
-    org.springframework: INFO
+    org.springframework: debug
     org.hibernate.SQL: DEBUG
     cersei.profile: DEBUG
   file:
