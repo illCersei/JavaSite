@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: wallet
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  mvc:
+    servlet:
+      path: /api/v1/wallet
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+  kafka:
+    bootstrap-servers: kafka_container:${SPRING_KAFKA_PORT}
+    consumer:
+      group-id: auth-consumer-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      missing-topics-fatal: false
+    template:
+      default-topic: wallet-events
+
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 3600000
+
+logging:
+  level:
+    org.springframework: debug
+    org.hibernate.SQL: DEBUG
+    cersei.auth: DEBUG
+  file:
+    name: logs/wallet.log
+
+server:
+  port: ${SERVER_PORT}

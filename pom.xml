@@ -12,6 +12,7 @@
         <module>twitchService</module>
         <module>common</module>
         <module>profile</module>
+        <module>wallet</module>
     </modules>
 
     <parent>
