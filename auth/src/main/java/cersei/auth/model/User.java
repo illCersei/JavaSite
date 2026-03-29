@@ -8,7 +8,7 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(
-        name = "users_test",
+        name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
                 @UniqueConstraint(name = "uk_user_username", columnNames = "username")
