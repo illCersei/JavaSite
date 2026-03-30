@@ -6,7 +6,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,6 +25,7 @@ services:
   kafka:
     image: apache/kafka:latest
     container_name: kafka_container
+    restart: always
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -66,7 +67,7 @@ services:
       - rabbitmq
       - kafka
     volumes:
-      - ./logs:/app/logs
+      - ./logs/auth:/app/logs
 
   twitch_service:
     build:
@@ -89,7 +90,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./logs:/app/logs
+      - ./logs/twitch:/app/logs
 
   test_api:
     build:
@@ -109,6 +110,8 @@ services:
       SPRING_RABBITMQ_PASSWORD: ${SPRING_RABBITMQ_PASSWORD}
     depends_on:
       - rabbitmq
+    volumes:
+      - ./logs/test_api:/app/logs
 
   profile_service:
     build:
@@ -133,6 +136,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       - kafka
+    volumes:
+      - ./logs/profile:/app/logs
 
   wallet_service:
     build:
@@ -157,9 +162,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       - kafka
+    volumes:
+      - ./logs/wallet:/app/logs
 
 volumes:
   redis_data:
   rabbitmq_data:
   kafka_data:
-
