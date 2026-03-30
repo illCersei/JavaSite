@@ -97,6 +97,8 @@ services:
       dockerfile: testApi/Dockerfile
     container_name: test_api
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8003:${SERVER_PORT}"
     environment:
@@ -114,6 +116,8 @@ services:
       dockerfile: profile/Dockerfile
     container_name: profile_service
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8004:${SERVER_PORT}"
     environment:
@@ -136,6 +140,8 @@ services:
       dockerfile: wallet/Dockerfile
     container_name: wallet_service
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8005:${SERVER_PORT}"
     environment:
