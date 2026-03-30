@@ -22,6 +22,8 @@ jobs:
       SSH_PORT: ${{ secrets.SERVER_PORT }}
       SSH_USER: ${{ secrets.SERVER_USER }}
       REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
+      # Fallback if ssh-keyscan from GitHub to your server is blocked; use: ssh-keyscan -p PORT HOST
+      SERVER_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
 
     steps:
       - name: Checkout repository
@@ -42,14 +44,23 @@ jobs:
           EOF
           chmod 600 ~/.ssh/id_ed25519
 
-          cat > ~/.ssh/known_hosts <<'EOF'
-          ${{ secrets.SERVER_KNOWN_HOSTS }}
-          EOF
+          : > ~/.ssh/known_hosts
+          if ssh-keyscan -p "${SSH_PORT}" -T 60 -t rsa,ecdsa,ed25519 "${SSH_HOST}" >> ~/.ssh/known_hosts 2>/dev/null \
+            && grep -q '^[^#[:space:]]' ~/.ssh/known_hosts; then
+            :
+          elif [ -n "${SERVER_KNOWN_HOSTS}" ]; then
+            : > ~/.ssh/known_hosts
+            printf '%s\n' "${SERVER_KNOWN_HOSTS}" >> ~/.ssh/known_hosts
+          else
+            echo "::error::No host keys: ssh-keyscan failed (firewall/DNS?) and SERVER_KNOWN_HOSTS is empty."
+            echo "For non-default port, paste output of: ssh-keyscan -p PORT HOST"
+            exit 1
+          fi
           chmod 644 ~/.ssh/known_hosts
 
       - name: Ensure remote directory exists
         run: |
-          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+          ssh -T -o BatchMode=yes -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "mkdir -p '$REMOTE_PATH'"
 
       - name: Sync backend repository to server
@@ -60,7 +71,7 @@ jobs:
             --exclude 'target' \
             --exclude '.idea' \
             --exclude '.DS_Store' \
-            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            -e "ssh -o BatchMode=yes -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             ./ "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
 
       - name: Upload backend .env
@@ -74,13 +85,13 @@ jobs:
           fi
           printf '%s\n' "$BACKEND_ENV_FILE" > .backend.env
           rsync -az \
-            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            -e "ssh -o BatchMode=yes -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             .backend.env "$SSH_USER@$SSH_HOST:$REMOTE_PATH/.env"
           rm -f .backend.env
 
       - name: Deploy backend with Docker Compose
         run: |
-          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
+          ssh -T -o BatchMode=yes -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
           set -euo pipefail
           cd "$REMOTE_PATH"
 
@@ -92,7 +103,7 @@ jobs:
       - name: Show backend logs on failure
         if: failure()
         run: |
-          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
+          ssh -T -o BatchMode=yes -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
           cd "$REMOTE_PATH" || exit 0
           docker compose logs --tail=200
           EOF
