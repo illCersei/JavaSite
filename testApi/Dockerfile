@@ -15,7 +15,7 @@ RUN mvn -B -q dependency:go-offline
 COPY . .
 
 # Собираем только testApi модуль
-RUN mvn -B -q clean package -DskipTests -pl testApi -am
+RUN mvn -B clean package -DskipTests -pl testApi -am
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

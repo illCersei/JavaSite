@@ -15,7 +15,7 @@ RUN mvn -B -q dependency:go-offline
 COPY . .
 
 # Собираем только twitchService модуль
-RUN mvn -B -q clean package -DskipTests -pl twitchService -am
+RUN mvn -B clean package -DskipTests -pl twitchService -am
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

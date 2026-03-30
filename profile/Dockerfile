@@ -15,7 +15,7 @@ RUN mvn -B -q dependency:go-offline
 COPY . .
 
 # Собираем только auth модуль
-RUN mvn -B -q clean package -DskipTests -pl profile -am
+RUN mvn -B clean package -DskipTests -pl profile -am
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
