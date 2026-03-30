@@ -64,18 +64,18 @@ jobs:
             ./ "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
 
       - name: Upload backend .env
-        if: ${{ secrets.BACKEND_ENV_FILE != '' }}
+        env:
+          BACKEND_ENV_FILE: ${{ secrets.BACKEND_ENV_FILE }}
         run: |
           set -euo pipefail
-
-          cat > .backend.env <<'EOF'
-          ${{ secrets.BACKEND_ENV_FILE }}
-          EOF
-
+          if [ -z "${BACKEND_ENV_FILE}" ]; then
+            echo "BACKEND_ENV_FILE secret not set; skipping .env upload"
+            exit 0
+          fi
+          printf '%s\n' "$BACKEND_ENV_FILE" > .backend.env
           rsync -az \
             -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             .backend.env "$SSH_USER@$SSH_HOST:$REMOTE_PATH/.env"
-
           rm -f .backend.env
 
       - name: Deploy backend with Docker Compose
