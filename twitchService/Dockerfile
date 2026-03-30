@@ -8,6 +8,7 @@ COPY testApi/pom.xml testApi/pom.xml
 COPY twitchService/pom.xml twitchService/pom.xml
 COPY common/pom.xml common/pom.xml
 COPY profile/pom.xml profile/pom.xml
+COPY wallet/pom.xml wallet/pom.xml
 RUN mvn -B -q dependency:go-offline
 
 # Копируем код проекта

@@ -1,0 +1,98 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-backend-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SSH_HOST: ${{ secrets.SERVER_HOST }}
+      SSH_PORT: ${{ secrets.SERVER_PORT }}
+      SSH_USER: ${{ secrets.SERVER_USER }}
+      REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install SSH tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync openssh-client
+
+      - name: Configure SSH
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+
+          cat > ~/.ssh/id_ed25519 <<'EOF'
+          ${{ secrets.SERVER_SSH_KEY }}
+          EOF
+          chmod 600 ~/.ssh/id_ed25519
+
+          cat > ~/.ssh/known_hosts <<'EOF'
+          ${{ secrets.SERVER_KNOWN_HOSTS }}
+          EOF
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Ensure remote directory exists
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "mkdir -p '$REMOTE_PATH'"
+
+      - name: Sync backend repository to server
+        run: |
+          rsync -az --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'target' \
+            --exclude '.idea' \
+            --exclude '.DS_Store' \
+            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            ./ "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
+
+      - name: Upload backend .env
+        if: ${{ secrets.BACKEND_ENV_FILE != '' }}
+        run: |
+          set -euo pipefail
+
+          cat > .backend.env <<'EOF'
+          ${{ secrets.BACKEND_ENV_FILE }}
+          EOF
+
+          rsync -az \
+            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            .backend.env "$SSH_USER@$SSH_HOST:$REMOTE_PATH/.env"
+
+          rm -f .backend.env
+
+      - name: Deploy backend with Docker Compose
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
+          set -euo pipefail
+          cd "$REMOTE_PATH"
+
+          docker compose pull || true
+          docker compose up -d --build --remove-orphans
+          docker compose ps
+          EOF
+
+      - name: Show backend logs on failure
+        if: failure()
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
+          cd "$REMOTE_PATH" || exit 0
+          docker compose logs --tail=200
+          EOF

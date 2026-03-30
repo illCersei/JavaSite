@@ -37,4 +37,12 @@ public class Wallet {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
+
+    public static Wallet newWallet(UUID userId) {
+        Wallet w = new Wallet();
+        w.id = UUID.randomUUID();
+        w.userId = userId;
+        w.balanceMinor = 0;
+        return w;
+    }
 }

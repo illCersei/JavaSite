@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Для реализации паттерна Outbox: таблица outbox_events, которая хранит события, которые нужно опубликовать в Kafka.
+ */
 @Entity
 @Table(name = "outbox_events")
 @Data

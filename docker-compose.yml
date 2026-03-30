@@ -130,6 +130,28 @@ services:
     depends_on:
       - kafka
 
+  wallet_service:
+    build:
+      context: .
+      dockerfile: wallet/Dockerfile
+    container_name: wallet_service
+    restart: always
+    ports:
+      - "8005:${SERVER_PORT}"
+    environment:
+      SERVER_PORT: ${SERVER_PORT}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
+      SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
+      SPRING_RABBITMQ_USERNAME: ${SPRING_RABBITMQ_USERNAME}
+      SPRING_RABBITMQ_PASSWORD: ${SPRING_RABBITMQ_PASSWORD}
+      SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - kafka
+
 volumes:
   redis_data:
   rabbitmq_data:

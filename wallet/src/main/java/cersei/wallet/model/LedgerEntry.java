@@ -8,6 +8,12 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.UUID;
 
+
+/**
+ * Журнал проводок: каждое начисление/списание - отдельная строка с типом операции,
+ * направлением (CREDIT / DEBIT), суммой, балансом после операции,
+ * внешней ссылкой reference_type + reference_id (идемпотентность).
+ */
 @Entity
 @Table(name = "ledger_entries")
 @Data

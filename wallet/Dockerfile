@@ -14,13 +14,13 @@ RUN mvn -B -q dependency:go-offline
 # Копируем код проекта
 COPY . .
 
-# Собираем только testApi модуль
-RUN mvn -B -q clean package -DskipTests -pl testApi -am
+# Собираем только auth модуль
+RUN mvn -B -q clean package -DskipTests -pl wallet -am
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-COPY --from=build /app/testApi/target/*.jar app.jar
+COPY --from=build /app/wallet/target/*.jar app.jar
 
 RUN mkdir -p /app/logs
 

@@ -27,7 +27,9 @@ spring:
   kafka:
     bootstrap-servers: kafka_container:${SPRING_KAFKA_PORT}
     consumer:
-      group-id: auth-consumer-group
+      group-id: wallet-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       auto-offset-reset: earliest
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -37,7 +39,6 @@ spring:
     template:
       default-topic: wallet-events
 
-
 jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000
@@ -46,9 +47,18 @@ logging:
   level:
     org.springframework: debug
     org.hibernate.SQL: DEBUG
-    cersei.auth: DEBUG
+    cersei.wallet: DEBUG
   file:
     name: logs/wallet.log
+
+wallet:
+  kafka:
+    commands-topic: wallet.commands
+    events-topic: wallet.events
+    listener-enabled: false
+  outbox:
+    enabled: false
+    publish-interval-ms: 2000
 
 server:
   port: ${SERVER_PORT}
