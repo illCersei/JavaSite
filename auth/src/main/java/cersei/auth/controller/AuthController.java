@@ -5,6 +5,8 @@ import cersei.auth.service.AuthService;
 import cersei.auth.service.RefreshTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.security.auth.Login;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +17,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final AuthService authService;
@@ -23,6 +26,8 @@ public class AuthController {
     @PostMapping("/public/register")
     public ResponseEntity<RegisterOkDto> register(@RequestBody @Valid UserRegisterDto dto) {
         authService.register(dto);
+        log.info("User registered: {}", dto.getUsername());
+
         return ResponseEntity.ok(new RegisterOkDto());
     }
 
@@ -30,6 +35,7 @@ public class AuthController {
     public ResponseEntity<LoginOkResponseDto> login(@RequestBody @Valid UserLoginDto dto) {
         LoginOkResponseDto response = authService.login(dto);
         String refreshToken = response.getRefreshToken();
+        log.info("User logged in: {}", dto.getUsername());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, "refreshToken=" + refreshToken + "; HttpOnly; Secure; Path=/; Max-Age=" + (7 * 24 * 60 * 60))
@@ -39,13 +45,19 @@ public class AuthController {
     @PostMapping("/public/refresh")
     public ResponseEntity<LoginOkResponseDto> refresh(@CookieValue("refreshToken") String token) {
         RefreshTokenDto dto = new RefreshTokenDto(token);
-        return ResponseEntity.ok(authService.refresh(dto));
+        LoginOkResponseDto response = authService.refresh(dto);
+        log.info("Token refreshed for user: {}", response.getUsername());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, "refreshToken=" + response.getRefreshToken() + "; HttpOnly; Secure; Path=/; Max-Age=" + (7 * 24 * 60 * 60))
+                .body(response);
     }
 
     @PostMapping("/public/logout")
     public ResponseEntity<String> logout(@CookieValue("refreshToken") String token) {
         RefreshTokenDto dto = new RefreshTokenDto(token);
         refreshTokenService.delete(dto.getRefreshToken());
+        log.info("User logged out with refresh token: {}", token);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, "refreshToken=; HttpOnly; Secure; Path=/; Max-Age=0")
@@ -59,6 +71,7 @@ public class AuthController {
     {
         UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
         authService.updateAuthData(userId, dto);
+        log.info("User updated auth data: {}", userId);
 
         RefreshTokenDto tokenDto = new RefreshTokenDto(token);
         refreshTokenService.delete(tokenDto.getRefreshToken());
