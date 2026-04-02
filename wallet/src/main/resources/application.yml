@@ -45,9 +45,9 @@ jwt:
 
 logging:
   level:
-    org.springframework: debug
-    org.hibernate.SQL: DEBUG
-    cersei.wallet: DEBUG
+    org.springframework: info
+    org.hibernate.SQL: info
+    cersei.wallet: info
   file:
     name: logs/wallet.log
 

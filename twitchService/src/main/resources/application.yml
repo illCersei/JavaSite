@@ -33,8 +33,8 @@ server:
 
 logging:
   level:
-    org.springframework: INFO
-    org.hibernate.SQL: DEBUG
-    cersei.twitchservice: DEBUG
+    org.springframework: info
+    org.hibernate.SQL: info
+    cersei.twitchservice: info
   file:
     name: logs/twitchservice.log

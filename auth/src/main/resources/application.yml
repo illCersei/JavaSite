@@ -50,9 +50,9 @@ jwt:
 
 logging:
   level:
-    org.springframework: debug
-    org.hibernate.SQL: DEBUG
-    cersei.auth: DEBUG
+    org.springframework: info
+    org.hibernate.SQL: info
+    cersei.auth: info
   file:
     name: logs/auth.log
 
