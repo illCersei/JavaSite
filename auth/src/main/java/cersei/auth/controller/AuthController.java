@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.Ref;
 import java.util.UUID;
 
-@Tag(name = "Методы")
 @RestController
 @RequiredArgsConstructor
 public class AuthController {

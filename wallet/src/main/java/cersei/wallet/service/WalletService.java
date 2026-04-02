@@ -12,12 +12,13 @@ import cersei.wallet.repository.OutboxEventRepository;
 import cersei.wallet.repository.WalletRepository;
 import cersei.wallet.service.utils.WalletBalanceView;
 import cersei.wallet.service.utils.WalletOperationResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -290,6 +291,8 @@ public class WalletService {
             // Может нужно более точное исключение
         } catch (RuntimeException e) {
             throw new IllegalStateException("Cannot serialize outbox payload", e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 
