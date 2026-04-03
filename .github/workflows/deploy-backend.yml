@@ -145,31 +145,11 @@ jobs:
           set -euo pipefail
           cd "$REMOTE_PATH"
 
-          mkdir -p logs
+          mkdir -p logs/auth logs/profile logs/test_api logs/twitch logs/wallet
 
-          # Деплоим только те сервисы, которые объявлены в compose с `build:`.
-          # Это избавляет от хардкода: добавите новый сервис — он автоматически попадет в деплой.
-          if command -v jq >/dev/null 2>&1; then
-            SERVICES="$(docker compose config --format json | jq -r '.services | to_entries[] | select(.value.build != null) | .key' | tr '\n' ' ')"
-          else
-            if ! command -v python3 >/dev/null 2>&1; then
-              echo "::error::Neither jq nor python3 is available on the server to extract build services from docker-compose.yml"
-              exit 1
-            fi
-            SERVICES="$(python3 - <<'PY'
-            import json, subprocess
-            cfg = json.loads(subprocess.check_output(["docker","compose","config","--format","json"]))
-            services = cfg.get("services", {})
-            deploy = [name for name, s in services.items() if s.get("build") is not None]
-            print(" ".join(deploy))
-            PY
-            )"
-          fi
-          if [ -z "${SERVICES}" ]; then
-            echo "::error::No build services found in docker-compose.yml; nothing to deploy."
-            exit 1
-          fi
-
+          # Деплоим только известные (пока) сервисы с `build:` в docker-compose.yml.
+          # Этот список мы хардкодим, чтобы не зависеть от парсинга compose на сервере.
+          SERVICES="auth_service twitch_service test_api profile_service wallet_service"
           PROJECT_NAME="$(basename "$REMOTE_PATH")"
 
           export DOCKER_BUILDKIT=1
@@ -201,7 +181,7 @@ jobs:
           done
 
           echo "== Rebuild & start (only deployed services) =="
-          docker compose up -d --build --no-deps --force-recreate $SERVICES
+          docker compose up -d --build --no-deps --pull never --force-recreate $SERVICES
           docker compose ps
           EOF
 
