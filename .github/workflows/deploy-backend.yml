@@ -48,7 +48,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     env:
       SSH_HOST: ${{ secrets.SERVER_HOST }}
@@ -145,10 +145,63 @@ jobs:
           set -euo pipefail
           cd "$REMOTE_PATH"
 
-          mkdir -p logs/auth logs/profile logs/test_api logs/twitch logs/wallet
+          mkdir -p logs
 
-          docker compose pull redis rabbitmq kafka || true
-          docker compose up -d --build --remove-orphans
+          # Деплоим только те сервисы, которые объявлены в compose с `build:`.
+          # Это избавляет от хардкода: добавите новый сервис — он автоматически попадет в деплой.
+          if command -v jq >/dev/null 2>&1; then
+            SERVICES="$(docker compose config --format json | jq -r '.services | to_entries[] | select(.value.build != null) | .key' | tr '\n' ' ')"
+          else
+            if ! command -v python3 >/dev/null 2>&1; then
+              echo "::error::Neither jq nor python3 is available on the server to extract build services from docker-compose.yml"
+              exit 1
+            fi
+            SERVICES="$(python3 - <<'PY'
+            import json, subprocess
+            cfg = json.loads(subprocess.check_output(["docker","compose","config","--format","json"]))
+            services = cfg.get("services", {})
+            deploy = [name for name, s in services.items() if s.get("build") is not None]
+            print(" ".join(deploy))
+            PY
+            )"
+          fi
+          if [ -z "${SERVICES}" ]; then
+            echo "::error::No build services found in docker-compose.yml; nothing to deploy."
+            exit 1
+          fi
+
+          PROJECT_NAME="$(basename "$REMOTE_PATH")"
+
+          export DOCKER_BUILDKIT=1
+          export COMPOSE_DOCKER_CLI_BUILD=1
+          export COMPOSE_PROGRESS=plain
+
+          echo "== Free disk (before build) =="
+          # Builder cache и неиспользуемые слои часто являются причиной "no space left on device".
+          docker builder prune -af || true
+          docker image prune -f || true
+
+          echo "== Stop/remove containers (only deployed services) =="
+          docker compose stop $SERVICES || true
+          docker compose rm -f $SERVICES || true
+
+          echo "== Remove old local images (only deployed services) =="
+          for svc in $SERVICES; do
+            IDS="$(docker images -q \
+              --filter "label=com.docker.compose.project=$PROJECT_NAME" \
+              --filter "label=com.docker.compose.service=$svc" || true)"
+            # Fallback на случай если compose project name отличается от basename.
+            if [ -z "${IDS}" ]; then
+              IDS="$(docker images -q \
+                --filter "label=com.docker.compose.service=$svc" || true)"
+            fi
+            if [ -n "${IDS}" ]; then
+              docker rmi -f ${IDS} || true
+            fi
+          done
+
+          echo "== Rebuild & start (only deployed services) =="
+          docker compose up -d --build --no-deps --force-recreate $SERVICES
           docker compose ps
           EOF
 
