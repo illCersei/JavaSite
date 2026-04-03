@@ -3,9 +3,11 @@ package cersei.twitchservice;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-@EnableCaching
 @SpringBootApplication
+@EnableCaching
+@EnableScheduling
 public class TwitchServiceApplication {
 
     public static void main(String[] args) {

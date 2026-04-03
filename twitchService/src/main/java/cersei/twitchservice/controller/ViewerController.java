@@ -14,6 +14,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,8 +29,9 @@ public class ViewerController {
 
     private final ViewerService viewerService;
 
-    @Cacheable(value = "ViewersCache", key = "'fixed'")
     @GetMapping("/all")
+    @Cacheable(value = "ViewersCache", key = "'fixed'")
+    @Scheduled(fixedRate = 1000 * 60 * 60 * 3) // 3 h
     public List<ViewerDto> getAllViewers() {
         return viewerService.findMaxViewersByDay();
     }
