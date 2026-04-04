@@ -54,6 +54,7 @@ logging:
 wallet:
   kafka:
     commands-topic: wallet.commands
+    replies-topic: wallet.commands.replies
     events-topic: wallet.events
     listener-enabled: false
   outbox:

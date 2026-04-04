@@ -1,10 +1,8 @@
-package cersei.wallet.kafka.dto;
+package cersei.pokemonservice.kafka.wallet;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public record WalletCommandMessage(
+public record WalletKafkaCommandDto(
         @JsonProperty("command") String command,
         @JsonProperty("userId") String userId,
         @JsonProperty("amountMinor") long amountMinor,

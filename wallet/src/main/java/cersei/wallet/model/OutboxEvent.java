@@ -1,9 +1,6 @@
 package cersei.wallet.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -30,6 +27,7 @@ public class OutboxEvent {
     @Column(name = "topic", nullable = false, length = 256)
     private String topic;
 
+    @Lob
     @Column(name = "payload_json", nullable = false)
     private String payloadJson;
 

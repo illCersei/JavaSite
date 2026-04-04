@@ -13,6 +13,7 @@
         <module>common</module>
         <module>profile</module>
         <module>wallet</module>
+        <module>pokemonService</module>
     </modules>
 
     <parent>
