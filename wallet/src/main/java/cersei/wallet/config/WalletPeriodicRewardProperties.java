@@ -23,7 +23,7 @@ public class WalletPeriodicRewardProperties {
      * Для {@link Strategy#FIXED_WINDOW} — длина окна в часах, если {@link #periodMinutes} = 0.
      * Для {@link Strategy#CALENDAR_DAY} должно быть 24 (проверяется при старте).
      */
-    private int periodHours = 24;
+    private int periodHours = 0;
 
     /**
      * Для {@link Strategy#FIXED_WINDOW}: если {@code > 0}, период в минутах (приоритет над {@link #periodHours}).
@@ -31,7 +31,7 @@ public class WalletPeriodicRewardProperties {
      */
     private int periodMinutes = 10;
 
-    private Strategy strategy = Strategy.CALENDAR_DAY;
+    private Strategy strategy = Strategy.FIXED_WINDOW;
 
     /** Часовой пояс для {@link Strategy#CALENDAR_DAY} (например Europe/Moscow, UTC). */
     private String zoneId = "UTC";

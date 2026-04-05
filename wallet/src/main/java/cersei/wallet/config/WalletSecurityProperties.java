@@ -22,7 +22,7 @@ public class WalletSecurityProperties {
      */
     private boolean allowArbitraryCreditDebit = false;
 
-    /** Роли из JWT claim {@code role} (как в auth), без учёта регистра. */
+    /** Роли из JWT claim {@code role}, без учёта регистра. */
     private String privilegedRoles = "ADMIN";
 
     public Set<String> privilegedRolesSet() {
