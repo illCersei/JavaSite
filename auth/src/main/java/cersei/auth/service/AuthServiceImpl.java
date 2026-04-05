@@ -9,6 +9,7 @@ import cersei.auth.model.RefreshToken;
 import cersei.auth.model.User;
 import cersei.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -83,22 +85,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void updateAuthData(UUID userId, AuthDataChangeDto dto) {
-        User user = new User();
-        user.setUserId(userId);
-        user.setRole("USER");
+        log.info("Обновляем юзера {}", userId);
 
-        if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
-            if (!user.getEmail().equals(dto.getEmail()) && userRepository.existsByEmail(dto.getEmail())) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
+            if (!dto.getEmail().equals(user.getEmail()) && userRepository.existsByEmail(dto.getEmail())) {
                 throw new RuntimeException("Email is already in use");
             }
             user.setEmail(dto.getEmail());
         }
 
-        if (dto.getUsername() != null && !dto.getUsername().isEmpty()){
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
             user.setUsername(dto.getUsername());
         }
 
-        if (dto.getPassword() != null && !dto.getPassword().isEmpty()){
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
