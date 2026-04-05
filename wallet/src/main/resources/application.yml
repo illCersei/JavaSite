@@ -25,7 +25,7 @@ spring:
       fail-on-unknown-properties: true
 
   kafka:
-    bootstrap-servers: kafka_container:${SPRING_KAFKA_PORT}
+    bootstrap-servers: kafka_container:9092
     consumer:
       group-id: wallet-consumer-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer

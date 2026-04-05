@@ -29,7 +29,7 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT:6379}
 
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka_container:${SPRING_KAFKA_PORT}}
+    bootstrap-servers: kafka_container:9092
     consumer:
       group-id: pokemon-consumer-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
