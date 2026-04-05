@@ -1,9 +1,11 @@
 package cersei.wallet.controller;
 
 
+import cersei.wallet.config.WalletSecurityProperties;
 import cersei.wallet.dto.WalletBalanceResponse;
 import cersei.wallet.dto.WalletOperationRequest;
 import cersei.wallet.dto.WalletOperationResponse;
+import cersei.wallet.exception.WalletAccessDeniedException;
 import cersei.wallet.service.WalletService;
 import cersei.wallet.service.utils.WalletBalanceView;
 import cersei.wallet.service.utils.WalletOperationResult;
@@ -13,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @RestController
@@ -21,6 +24,7 @@ import java.util.UUID;
 public class WalletController {
 
     private final WalletService walletService;
+    private final WalletSecurityProperties walletSecurityProperties;
 
     @GetMapping("/me")
     public WalletBalanceResponse me(@AuthenticationPrincipal Jwt jwt) {
@@ -33,6 +37,7 @@ public class WalletController {
     public WalletOperationResponse credit(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody WalletOperationRequest body) {
+        requireArbitraryWalletMutationAllowed(jwt);
         UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
         WalletOperationResult r =
                 walletService.credit(
@@ -50,6 +55,7 @@ public class WalletController {
     public WalletOperationResponse debit(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody WalletOperationRequest body) {
+        requireArbitraryWalletMutationAllowed(jwt);
         UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
         WalletOperationResult r =
                 walletService.debit(
@@ -61,5 +67,20 @@ public class WalletController {
                         body.metadataJson(),
                         body.correlationId());
         return new WalletOperationResponse(r.ledgerEntryId(), r.balanceMinorAfter(), r.idempotentReplay());
+    }
+
+    private void requireArbitraryWalletMutationAllowed(Jwt jwt) {
+        if (walletSecurityProperties.isAllowArbitraryCreditDebit()) {
+            return;
+        }
+        String role = jwt.getClaimAsString("role");
+        if (role != null
+                && walletSecurityProperties
+                        .privilegedRolesSet()
+                        .contains(role.toUpperCase(Locale.ROOT))) {
+            return;
+        }
+        throw new WalletAccessDeniedException(
+                "Direct credit/debit is disabled. Use POST /private/me/rewards/claim or game flows (e.g. gacha).");
     }
 }

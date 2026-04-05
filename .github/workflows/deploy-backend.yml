@@ -44,6 +44,7 @@ jobs:
             testApi/target/*.jar
             twitchService/target/*.jar
             wallet/target/*.jar
+            pokemonService/target/*.jar
 
   deploy:
     runs-on: ubuntu-latest
@@ -145,11 +146,11 @@ jobs:
           set -euo pipefail
           cd "$REMOTE_PATH"
 
-          mkdir -p logs/auth logs/profile logs/test_api logs/twitch logs/wallet
+          mkdir -p logs/auth logs/profile logs/test_api logs/twitch logs/wallet logs/pokemon
 
-          # Деплоим только известные (пока) сервисы с `build:` в docker-compose.yml.
-          # Этот список мы хардкодим, чтобы не зависеть от парсинга compose на сервере.
-          SERVICES="auth_service twitch_service test_api profile_service wallet_service"
+          # Деплоим только известные сервисы с `build:` в docker-compose.yml.
+          # PokeAPI в compose только `image:` — не входит в список (см. отдельный workflow pokeapi-setup).
+          SERVICES="auth_service twitch_service test_api profile_service wallet_service pokemon_service"
           PROJECT_NAME="$(basename "$REMOTE_PATH")"
 
           export DOCKER_BUILDKIT=1
@@ -182,6 +183,11 @@ jobs:
 
           echo "== Rebuild & start (only deployed services) =="
           docker compose up -d --build --no-deps --pull never --force-recreate $SERVICES
+
+          echo "== PokeAPI: не пересобираем; не тянем новый тег при каждом деплое (только старт) =="
+          docker compose up -d pokeapi --no-build --pull never \
+            || docker compose up -d pokeapi --pull missing
+
           docker compose ps
           EOF
 

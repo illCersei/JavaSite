@@ -52,6 +52,18 @@ logging:
     name: logs/wallet.log
 
 wallet:
+  periodic-reward:
+    enabled: true
+    amount-minor: ${WALLET_PERIODIC_REWARD_AMOUNT:1000}
+    period-hours: ${WALLET_PERIODIC_REWARD_PERIOD_HOURS:24}
+    period-minutes: ${WALLET_PERIODIC_REWARD_PERIOD_MINUTES:10}
+    strategy: ${WALLET_PERIODIC_REWARD_STRATEGY:CALENDAR_DAY}
+    zone-id: ${WALLET_PERIODIC_REWARD_ZONE:UTC}
+    reference-type: PERIODIC_REWARD
+    entry-type: PERIODIC_REWARD
+  security:
+    allow-arbitrary-credit-debit: ${WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT:false}
+    privileged-roles: ${WALLET_PRIVILEGED_ROLES:ADMIN}
   kafka:
     commands-topic: wallet.commands
     replies-topic: wallet.commands.replies

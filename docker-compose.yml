@@ -179,6 +179,7 @@ services:
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
       JWT_SECRET: ${JWT_SECRET}
       WALLET_KAFKA_LISTENER_ENABLED: "true"
+      WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT: "true"
     depends_on:
       - kafka
     volumes:

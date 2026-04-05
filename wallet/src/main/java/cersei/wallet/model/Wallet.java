@@ -19,7 +19,7 @@ public class Wallet {
     private UUID userId;
 
     @Column(nullable = false, length = 16)
-    private String currency = "GAME";
+    private String currency = "COIN";
 
     @Column(name = "balance_minor", nullable = false)
     private long balanceMinor;

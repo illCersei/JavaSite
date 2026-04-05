@@ -84,7 +84,7 @@ public class WalletService {
             LedgerEntry le = existing.get();
             return WalletOperationResult.builder()
                     .ledgerEntryId(le.getId())
-                    .balanceMinorAfter(le.getBalanceAfterMinor())
+                    .balanceMinorAfter(wallet.getBalanceMinor())
                     .idempotentReplay(true)
                     .build();
         }
@@ -131,7 +131,7 @@ public class WalletService {
             LedgerEntry le = existing.get();
             return WalletOperationResult.builder()
                     .ledgerEntryId(le.getId())
-                    .balanceMinorAfter(le.getBalanceAfterMinor())
+                    .balanceMinorAfter(wallet.getBalanceMinor())
                     .idempotentReplay(true)
                     .build();
         }
@@ -166,7 +166,7 @@ public class WalletService {
                 .orElseThrow(() -> new IllegalStateException("Concurrent operation failed"));
         return WalletOperationResult.builder()
                 .ledgerEntryId(le.getId())
-                .balanceMinorAfter(le.getBalanceAfterMinor())
+                .balanceMinorAfter(w.getBalanceMinor())
                 .idempotentReplay(true)
                 .build();
     }
@@ -181,7 +181,7 @@ public class WalletService {
                 .orElseThrow(() -> new IllegalStateException("Concurrent operation failed"));
         return WalletOperationResult.builder()
                 .ledgerEntryId(le.getId())
-                .balanceMinorAfter(le.getBalanceAfterMinor())
+                .balanceMinorAfter(w.getBalanceMinor())
                 .idempotentReplay(true)
                 .build();
     }

@@ -85,3 +85,16 @@ rm -rf ./pokeapi-temp
 rm -rf ./pokeapi-data
 ```
 
+## Автоматизация (сервер, CI)
+
+Тот же порядок шагов вынесен в скрипт репозитория:
+
+```bash
+chmod +x scripts/pokeapi-setup-server.sh
+./scripts/pokeapi-setup-server.sh
+```
+
+Запуск из корня проекта (рядом с `docker-compose.yml`). На сервере нужны `git` и `docker compose`.
+
+В GitHub Actions: workflow **`pokeapi-setup`** (`workflow_dispatch`) копирует этот скрипт на сервер (secret `BACKEND_REMOTE_PATH`) и выполняет его.
+
