@@ -46,6 +46,8 @@ services:
     image: pokeapi/pokeapi:master
     container_name: pokeapi
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8088:80"
     environment:
