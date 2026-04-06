@@ -17,9 +17,6 @@ services:
       RABBITMQ_DEFAULT_USER: ${SPRING_RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${SPRING_RABBITMQ_PASSWORD}
     mem_limit: 512m
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
@@ -27,8 +24,6 @@ services:
     image: apache/kafka:latest
     container_name: kafka_container
     restart: always
-    ports:
-      - "${SPRING_KAFKA_PORT}:9092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
