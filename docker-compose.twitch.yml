@@ -32,6 +32,9 @@ services:
 
   pokeapi:
     image: pokeapi/pokeapi:master
+    container_name: pokeapi
+    profiles:
+      - pokeapi
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"

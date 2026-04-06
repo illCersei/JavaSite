@@ -1,64 +1,29 @@
-name: Deploy Twitch Stack
+name: Setup PokeAPI (manual)
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'twitchService/**'
-      - 'pom.xml'
-      - 'docker-compose.twitch.yml'
-      - '.github/workflows/deploy-twitch.yml'
   workflow_dispatch:
+    inputs:
+      rebuild_data:
+        description: "Recreate pokeapi-data folder (DANGEROUS: deletes ./pokeapi-data)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
-  group: deploy-twitch-main
-  cancel-in-progress: true
+  group: setup-pokeapi
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  setup:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    env:
-      IMAGE_NAME: twitch-service
+    timeout-minutes: 90
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Compute lowercase owner
-        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
-
-      - name: Build twitch jar
-        run: mvn -B package -DskipTests -pl twitchService -am
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push twitch image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: twitchService/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_NAME }}:main
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
 
       - name: Install SSH tools
         run: |
@@ -99,7 +64,7 @@ jobs:
           ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "mkdir -p \"$REMOTE_PATH\""
 
-      - name: Upload twitch compose
+      - name: Upload twitch compose (for pokeapi service)
         env:
           SSH_HOST: ${{ secrets.TWITCH_SERVER_HOST }}
           SSH_PORT: ${{ secrets.TWITCH_SERVER_PORT }}
@@ -125,31 +90,45 @@ jobs:
             .twitch.env "$SSH_USER@$SSH_HOST:$REMOTE_PATH/.env"
           rm -f .twitch.env
 
-      - name: Deploy twitch stack
+      - name: Prepare PokeAPI CSV data then run migrations + build_all
         env:
           SSH_HOST: ${{ secrets.TWITCH_SERVER_HOST }}
           SSH_PORT: ${{ secrets.TWITCH_SERVER_PORT }}
           SSH_USER: ${{ secrets.TWITCH_SERVER_USER }}
           REMOTE_PATH: ${{ secrets.TWITCH_REMOTE_PATH }}
-          GHCR_PULL_USERNAME: ${{ secrets.GHCR_PULL_USERNAME }}
-          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+          REBUILD_DATA: ${{ inputs.rebuild_data }}
         run: |
-          ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
+          ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<'EOF'
           set -euo pipefail
           cd "$REMOTE_PATH"
 
-          mkdir -p logs/twitch
+          # Cleanup any leftover temp dirs in deploy folder
+          for d in ./*-temp ./*.tmp; do
+            if [ -d "$d" ]; then
+              rm -rf "$d"
+            fi
+          done
 
-          echo "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_PULL_USERNAME" --password-stdin
+          if [ "${REBUILD_DATA:-false}" = "true" ]; then
+            rm -rf ./pokeapi-data
+          fi
 
-          docker compose -f docker-compose.twitch.yml pull twitch_service
-          docker compose -f docker-compose.twitch.yml up -d redis
-          docker compose -f docker-compose.twitch.yml up -d twitch_service
+          git clone --depth 1 https://github.com/PokeAPI/pokeapi.git ./pokeapi-temp
+          mkdir -p ./pokeapi-data/data/v2/csv
+          cp -r ./pokeapi-temp/data/v2/csv/* ./pokeapi-data/data/v2/csv/
+          ls ./pokeapi-data/data/v2/csv | head -n 20
+          rm -rf ./pokeapi-temp
 
-          docker compose -f docker-compose.twitch.yml ps
+          docker compose -f docker-compose.twitch.yml up -d pokeapi --pull missing
+
+          docker exec pokeapi python manage.py migrate --settings=config.docker-compose
+          docker exec -T pokeapi python manage.py shell --settings=config.docker-compose <<'PY'
+          from data.v2.build import build_all
+          build_all()
+          PY
           EOF
 
-      - name: Show twitch logs on failure
+      - name: Show logs on failure
         if: failure()
         env:
           SSH_HOST: ${{ secrets.TWITCH_SERVER_HOST }}
@@ -157,7 +136,8 @@ jobs:
           SSH_USER: ${{ secrets.TWITCH_SERVER_USER }}
           REMOTE_PATH: ${{ secrets.TWITCH_REMOTE_PATH }}
         run: |
-          ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
+          ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<'EOF'
           cd "$REMOTE_PATH" || exit 0
-          docker compose -f docker-compose.twitch.yml logs --tail=200
+          docker compose -f docker-compose.twitch.yml ps || true
+          docker compose -f docker-compose.twitch.yml logs --tail=200 pokeapi || true
           EOF
