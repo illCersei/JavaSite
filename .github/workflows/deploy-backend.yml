@@ -2,8 +2,7 @@ name: Deploy Backend Stack
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
     paths:
       - 'auth/**'
       - 'profile/**'
@@ -17,19 +16,60 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: deploy-backend-main
   cancel-in-progress: true
 
 jobs:
-  build:
+  detect:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    outputs:
+      auth: ${{ steps.filter.outputs.auth }}
+      profile: ${{ steps.filter.outputs.profile }}
+      testApi: ${{ steps.filter.outputs.testApi }}
+      wallet: ${{ steps.filter.outputs.wallet }}
+      pokemonService: ${{ steps.filter.outputs.pokemonService }}
+      all: ${{ steps.filter.outputs.all }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect changed backend services
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            all:
+              - 'pom.xml'
+              - 'docker-compose.backend.yml'
+            auth:
+              - 'auth/**'
+              - 'pom.xml'
+            profile:
+              - 'profile/**'
+              - 'pom.xml'
+            testApi:
+              - 'testApi/**'
+              - 'pom.xml'
+            wallet:
+              - 'wallet/**'
+              - 'pom.xml'
+            pokemonService:
+              - 'pokemonService/**'
+              - 'pom.xml'
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    needs: detect
+    timeout-minutes: 90
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Compute lowercase owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -39,42 +79,69 @@ jobs:
           cache: maven
 
       - name: Build backend jars
-        run: |
-          mvn -B package -DskipTests -pl auth,profile,testApi,wallet,pokemonService -am
+        run: mvn -B package -DskipTests -pl auth,profile,testApi,wallet,pokemonService -am
 
-      - name: Upload backend jars
-        uses: actions/upload-artifact@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          name: backend-jars
-          retention-days: 1
-          path: |
-            auth/target/*.jar
-            profile/target/*.jar
-            testApi/target/*.jar
-            wallet/target/*.jar
-            pokemonService/target/*.jar
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    timeout-minutes: 60
-
-    env:
-      SSH_HOST: ${{ secrets.BACKEND_SERVER_HOST }}
-      SSH_PORT: ${{ secrets.BACKEND_SERVER_PORT }}
-      SSH_USER: ${{ secrets.BACKEND_SERVER_USER }}
-      REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
-      SERVER_KNOWN_HOSTS: ${{ secrets.BACKEND_SERVER_KNOWN_HOSTS }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download backend jars
-        uses: actions/download-artifact@v4
+      - name: Build and push auth image
+        if: github.event_name == 'workflow_dispatch' || needs.detect.outputs.auth == 'true'
+        uses: docker/build-push-action@v6
         with:
-          name: backend-jars
-          path: .
+          context: .
+          file: auth/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/auth-service:main
+            ghcr.io/${{ env.OWNER_LC }}/auth-service:sha-${{ github.sha }}
+
+      - name: Build and push profile image
+        if: github.event_name == 'workflow_dispatch' || needs.detect.outputs.profile == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: profile/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/profile-service:main
+            ghcr.io/${{ env.OWNER_LC }}/profile-service:sha-${{ github.sha }}
+
+      - name: Build and push test-api image
+        if: github.event_name == 'workflow_dispatch' || needs.detect.outputs.testApi == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: testApi/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/test-api:main
+            ghcr.io/${{ env.OWNER_LC }}/test-api:sha-${{ github.sha }}
+
+      - name: Build and push wallet image
+        if: github.event_name == 'workflow_dispatch' || needs.detect.outputs.wallet == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: wallet/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/wallet-service:main
+            ghcr.io/${{ env.OWNER_LC }}/wallet-service:sha-${{ github.sha }}
+
+      - name: Build and push pokemon image
+        if: github.event_name == 'workflow_dispatch' || needs.detect.outputs.pokemonService == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: pokemonService/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.OWNER_LC }}/pokemon-service:main
+            ghcr.io/${{ env.OWNER_LC }}/pokemon-service:sha-${{ github.sha }}
 
       - name: Install SSH tools
         run: |
@@ -82,17 +149,16 @@ jobs:
           sudo apt-get install -y rsync openssh-client
 
       - name: Configure SSH
+        env:
+          SSH_HOST: ${{ secrets.BACKEND_SERVER_HOST }}
+          SSH_PORT: ${{ secrets.BACKEND_SERVER_PORT }}
+          SERVER_KNOWN_HOSTS: ${{ secrets.BACKEND_SERVER_KNOWN_HOSTS }}
+          SSH_KEY: ${{ secrets.BACKEND_SERVER_SSH_KEY }}
         run: |
           set -euo pipefail
           install -m 700 -d ~/.ssh
-
-          printf '%s\n' "${{ secrets.BACKEND_SERVER_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-
-          if ! ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1; then
-            echo "::error::BACKEND_SERVER_SSH_KEY is not a valid private key."
-            exit 1
-          fi
 
           : > ~/.ssh/known_hosts
           if ssh-keyscan -p "${SSH_PORT}" -T 60 -t rsa,ecdsa,ed25519 "${SSH_HOST}" >> ~/.ssh/known_hosts 2>/dev/null \
@@ -101,106 +167,80 @@ jobs:
           elif [ -n "${SERVER_KNOWN_HOSTS}" ]; then
             printf '%s\n' "${SERVER_KNOWN_HOSTS}" > ~/.ssh/known_hosts
           else
-            echo "::error::No host keys: ssh-keyscan failed and BACKEND_SERVER_KNOWN_HOSTS is empty."
+            echo "::error::No host keys found."
             exit 1
           fi
           chmod 644 ~/.ssh/known_hosts
 
       - name: Ensure remote directory exists
+        env:
+          SSH_HOST: ${{ secrets.BACKEND_SERVER_HOST }}
+          SSH_PORT: ${{ secrets.BACKEND_SERVER_PORT }}
+          SSH_USER: ${{ secrets.BACKEND_SERVER_USER }}
+          REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
         run: |
-          ssh -T \
-            -o BatchMode=yes \
-            -o ServerAliveInterval=30 \
-            -o ServerAliveCountMax=10 \
-            -i ~/.ssh/id_ed25519 \
-            -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+          ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "mkdir -p \"$REMOTE_PATH\""
 
-      - name: Sync backend repository and jars to server
+      - name: Upload backend compose
+        env:
+          SSH_HOST: ${{ secrets.BACKEND_SERVER_HOST }}
+          SSH_PORT: ${{ secrets.BACKEND_SERVER_PORT }}
+          SSH_USER: ${{ secrets.BACKEND_SERVER_USER }}
+          REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
         run: |
-          rsync -az --delete \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude '.idea' \
-            --exclude '.DS_Store' \
-            --exclude 'logs' \
-            -e "ssh -o BatchMode=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
-            ./ "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
+          rsync -az \
+            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            docker-compose.backend.yml "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
 
       - name: Upload backend .env
         env:
+          SSH_HOST: ${{ secrets.BACKEND_SERVER_HOST }}
+          SSH_PORT: ${{ secrets.BACKEND_SERVER_PORT }}
+          SSH_USER: ${{ secrets.BACKEND_SERVER_USER }}
+          REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
           BACKEND_ENV_FILE: ${{ secrets.BACKEND_ENV_FILE }}
         run: |
           set -euo pipefail
-          if [ -z "${BACKEND_ENV_FILE}" ]; then
-            echo "BACKEND_ENV_FILE secret not set; skipping .env upload"
-            exit 0
-          fi
-
           printf '%s\n' "$BACKEND_ENV_FILE" > .backend.env
           rsync -az \
-            -e "ssh -o BatchMode=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
+            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             .backend.env "$SSH_USER@$SSH_HOST:$REMOTE_PATH/.env"
           rm -f .backend.env
 
-      - name: Deploy backend stack with Docker Compose
+      - name: Deploy backend stack
+        env:
+          SSH_HOST: ${{ secrets.BACKEND_SERVER_HOST }}
+          SSH_PORT: ${{ secrets.BACKEND_SERVER_PORT }}
+          SSH_USER: ${{ secrets.BACKEND_SERVER_USER }}
+          REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
+          GHCR_PULL_USERNAME: ${{ secrets.GHCR_PULL_USERNAME }}
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
         run: |
-          ssh -T \
-            -o BatchMode=yes \
-            -o ServerAliveInterval=30 \
-            -o ServerAliveCountMax=10 \
-            -i ~/.ssh/id_ed25519 \
-            -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
+          ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
           set -euo pipefail
           cd "$REMOTE_PATH"
 
           mkdir -p logs/auth logs/profile logs/test_api logs/wallet logs/pokemon
 
-          export DOCKER_BUILDKIT=1
-          export COMPOSE_DOCKER_CLI_BUILD=1
-          export COMPOSE_PROGRESS=plain
+          echo "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_PULL_USERNAME" --password-stdin
 
-          COMPOSE_FILE="docker-compose.backend.yml"
-          SERVICES="auth_service test_api profile_service wallet_service pokemon_service"
+          docker compose -f docker-compose.backend.yml up -d redis rabbitmq kafka
+          docker compose -f docker-compose.backend.yml pull auth_service test_api profile_service wallet_service pokemon_service
+          docker compose -f docker-compose.backend.yml up -d auth_service test_api profile_service wallet_service pokemon_service
 
-          echo "== Free disk (before build) =="
-          docker builder prune -af || true
-          docker image prune -f || true
-
-          echo "== Stop/remove old backend app containers =="
-          docker compose -f "\$COMPOSE_FILE" stop \$SERVICES || true
-          docker compose -f "\$COMPOSE_FILE" rm -f \$SERVICES || true
-
-          echo "== Remove old local images for backend app services =="
-          for svc in \$SERVICES; do
-            IDS="\$(docker images -q --filter "label=com.docker.compose.service=\$svc" || true)"
-            if [ -n "\${IDS}" ]; then
-              docker rmi -f \${IDS} || true
-            fi
-          done
-
-          echo "== Start infra =="
-          docker compose -f "\$COMPOSE_FILE" up -d redis rabbitmq kafka
-
-          echo "== Start pokeapi =="
-          docker compose -f "\$COMPOSE_FILE" up -d pokeapi --no-build --pull never \
-            || docker compose -f "\$COMPOSE_FILE" up -d pokeapi --pull missing
-
-          echo "== Rebuild & start backend services =="
-          docker compose -f "\$COMPOSE_FILE" up -d --build --no-deps --force-recreate \$SERVICES
-
-          docker compose -f "\$COMPOSE_FILE" ps
+          docker compose -f docker-compose.backend.yml ps
           EOF
 
       - name: Show backend logs on failure
         if: failure()
+        env:
+          SSH_HOST: ${{ secrets.BACKEND_SERVER_HOST }}
+          SSH_PORT: ${{ secrets.BACKEND_SERVER_PORT }}
+          SSH_USER: ${{ secrets.BACKEND_SERVER_USER }}
+          REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
         run: |
-          ssh -T \
-            -o BatchMode=yes \
-            -o ServerAliveInterval=30 \
-            -o ServerAliveCountMax=10 \
-            -i ~/.ssh/id_ed25519 \
-            -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
+          ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
           cd "$REMOTE_PATH" || exit 0
           docker compose -f docker-compose.backend.yml logs --tail=200
           EOF

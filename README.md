@@ -84,6 +84,15 @@ TODO: Добавить подробности по каждому сервису
 
 ---
 
+## Деплой на 2 сервера (текущее решение)
+
+- **Старый сервер**: `twitch_service` + `pokeapi`
+- **Новый сервер**: `auth_service`, `profile_service`, `test_api`, `wallet_service`, `pokemon_service` + инфраструктура (`redis`, `rabbitmq`, `kafka`)
+
+Важно: `pokemon_service` теперь ждёт `POKEAPI_BASE_URL` как внешний URL (например `http://<OLD_SERVER_IP>:8088`), т.к. `pokeapi` живёт на другом сервере.
+
+---
+
 ## Логи
 
 Каталоги на хосте: `./logs/...` (см. `docker-compose.yml`).

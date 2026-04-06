@@ -1,7 +1,6 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: redis_container
     restart: always
     volumes:
       - redis_data:/data
@@ -13,7 +12,6 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: rabbitmq_container
     restart: always
     environment:
       RABBITMQ_DEFAULT_USER: ${SPRING_RABBITMQ_USERNAME}
@@ -48,32 +46,8 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
 
-  pokeapi:
-    image: pokeapi/pokeapi:master
-    container_name: pokeapi
-    restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "8088:80"
-    environment:
-      POSTGRES_DB: ${POKEAPI_DB}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_HOST: ${DB_HOST}
-      POSTGRES_PORT: ${DB_PORT}
-      REDIS_CONNECTION_STRING: redis://redis:${SPRING_DATA_REDIS_PORT}/0
-    volumes:
-      - ./pokeapi-data/data/v2/csv:/code/data/v2/csv:ro
-    depends_on:
-      redis:
-        condition: service_healthy
-
   auth_service:
-    build:
-      context: .
-      dockerfile: auth/Dockerfile
-    container_name: auth_service
+    image: ghcr.io/illcersei/auth-service:main
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -97,10 +71,7 @@ services:
       - ./logs/auth:/app/logs
 
   test_api:
-    build:
-      context: .
-      dockerfile: testApi/Dockerfile
-    container_name: test_api
+    image: ghcr.io/illcersei/test-api:main
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -118,10 +89,7 @@ services:
       - ./logs/test_api:/app/logs
 
   profile_service:
-    build:
-      context: .
-      dockerfile: profile/Dockerfile
-    container_name: profile_service
+    image: ghcr.io/illcersei/profile-service:main
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -144,10 +112,7 @@ services:
       - ./logs/profile:/app/logs
 
   wallet_service:
-    build:
-      context: .
-      dockerfile: wallet/Dockerfile
-    container_name: wallet_service
+    image: ghcr.io/illcersei/wallet-service:main
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -172,10 +137,7 @@ services:
       - ./logs/wallet:/app/logs
 
   pokemon_service:
-    build:
-      context: .
-      dockerfile: pokemonService/Dockerfile
-    container_name: pokemon_service
+    image: ghcr.io/illcersei/pokemon-service:main
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -190,13 +152,11 @@ services:
       SPRING_DATA_REDIS_HOST: ${SPRING_DATA_REDIS_HOST}
       SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
-      POKEAPI_BASE_URL: http://pokeapi
+      POKEAPI_BASE_URL: ${POKEAPI_BASE_URL}
     depends_on:
       redis:
         condition: service_healthy
       kafka:
-        condition: service_started
-      pokeapi:
         condition: service_started
       wallet_service:
         condition: service_started
