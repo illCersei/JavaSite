@@ -1,31 +1,27 @@
-name: Deploy Backend Stack
+name: Deploy Twitch Stack
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'auth/**'
-      - 'profile/**'
-      - 'testApi/**'
-      - 'wallet/**'
-      - 'pokemonService/**'
+      - 'twitchService/**'
       - 'pom.xml'
-      - 'docker-compose.backend.yml'
-      - '.github/workflows/deploy-backend.yml'
+      - 'docker-compose.twitch.yml'
+      - '.github/workflows/deploy-twitch.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: deploy-backend-main
+  group: deploy-twitch-main
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -38,21 +34,16 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Build backend jars
+      - name: Build twitch jar
         run: |
-          mvn -B package -DskipTests -pl auth,profile,testApi,wallet,pokemonService -am
+          mvn -B package -DskipTests -pl twitchService -am
 
-      - name: Upload backend jars
+      - name: Upload twitch jar
         uses: actions/upload-artifact@v4
         with:
-          name: backend-jars
+          name: twitch-jar
           retention-days: 1
-          path: |
-            auth/target/*.jar
-            profile/target/*.jar
-            testApi/target/*.jar
-            wallet/target/*.jar
-            pokemonService/target/*.jar
+          path: twitchService/target/*.jar
 
   deploy:
     runs-on: ubuntu-latest
@@ -60,21 +51,21 @@ jobs:
     timeout-minutes: 60
 
     env:
-      SSH_HOST: ${{ secrets.BACKEND_SERVER_HOST }}
-      SSH_PORT: ${{ secrets.BACKEND_SERVER_PORT }}
-      SSH_USER: ${{ secrets.BACKEND_SERVER_USER }}
-      REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
-      SERVER_KNOWN_HOSTS: ${{ secrets.BACKEND_SERVER_KNOWN_HOSTS }}
+      SSH_HOST: ${{ secrets.TWITCH_SERVER_HOST }}
+      SSH_PORT: ${{ secrets.TWITCH_SERVER_PORT }}
+      SSH_USER: ${{ secrets.TWITCH_SERVER_USER }}
+      REMOTE_PATH: ${{ secrets.TWITCH_REMOTE_PATH }}
+      SERVER_KNOWN_HOSTS: ${{ secrets.TWITCH_SERVER_KNOWN_HOSTS }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download backend jars
+      - name: Download twitch jar
         uses: actions/download-artifact@v4
         with:
-          name: backend-jars
-          path: .
+          name: twitch-jar
+          path: twitchService/target
 
       - name: Install SSH tools
         run: |
@@ -86,11 +77,11 @@ jobs:
           set -euo pipefail
           install -m 700 -d ~/.ssh
 
-          printf '%s\n' "${{ secrets.BACKEND_SERVER_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_ed25519
+          printf '%s\n' "${{ secrets.TWITCH_SERVER_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
           if ! ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1; then
-            echo "::error::BACKEND_SERVER_SSH_KEY is not a valid private key."
+            echo "::error::TWITCH_SERVER_SSH_KEY is not a valid private key."
             exit 1
           fi
 
@@ -101,7 +92,7 @@ jobs:
           elif [ -n "${SERVER_KNOWN_HOSTS}" ]; then
             printf '%s\n' "${SERVER_KNOWN_HOSTS}" > ~/.ssh/known_hosts
           else
-            echo "::error::No host keys: ssh-keyscan failed and BACKEND_SERVER_KNOWN_HOSTS is empty."
+            echo "::error::No host keys: ssh-keyscan failed and TWITCH_SERVER_KNOWN_HOSTS is empty."
             exit 1
           fi
           chmod 644 ~/.ssh/known_hosts
@@ -116,7 +107,7 @@ jobs:
             -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "mkdir -p \"$REMOTE_PATH\""
 
-      - name: Sync backend repository and jars to server
+      - name: Sync twitch repository and jar to server
         run: |
           rsync -az --delete \
             --exclude '.git' \
@@ -127,23 +118,23 @@ jobs:
             -e "ssh -o BatchMode=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
             ./ "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
 
-      - name: Upload backend .env
+      - name: Upload twitch .env
         env:
-          BACKEND_ENV_FILE: ${{ secrets.BACKEND_ENV_FILE }}
+          TWITCH_ENV_FILE: ${{ secrets.TWITCH_ENV_FILE }}
         run: |
           set -euo pipefail
-          if [ -z "${BACKEND_ENV_FILE}" ]; then
-            echo "BACKEND_ENV_FILE secret not set; skipping .env upload"
+          if [ -z "${TWITCH_ENV_FILE}" ]; then
+            echo "TWITCH_ENV_FILE secret not set; skipping .env upload"
             exit 0
           fi
 
-          printf '%s\n' "$BACKEND_ENV_FILE" > .backend.env
+          printf '%s\n' "$TWITCH_ENV_FILE" > .twitch.env
           rsync -az \
             -e "ssh -o BatchMode=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
-            .backend.env "$SSH_USER@$SSH_HOST:$REMOTE_PATH/.env"
-          rm -f .backend.env
+            .twitch.env "$SSH_USER@$SSH_HOST:$REMOTE_PATH/.env"
+          rm -f .twitch.env
 
-      - name: Deploy backend stack with Docker Compose
+      - name: Deploy twitch stack with Docker Compose
         run: |
           ssh -T \
             -o BatchMode=yes \
@@ -154,45 +145,31 @@ jobs:
           set -euo pipefail
           cd "$REMOTE_PATH"
 
-          mkdir -p logs/auth logs/profile logs/test_api logs/wallet logs/pokemon
+          mkdir -p logs/twitch
 
           export DOCKER_BUILDKIT=1
           export COMPOSE_DOCKER_CLI_BUILD=1
           export COMPOSE_PROGRESS=plain
 
-          COMPOSE_FILE="docker-compose.backend.yml"
-          SERVICES="auth_service test_api profile_service wallet_service pokemon_service"
+          COMPOSE_FILE="docker-compose.twitch.yml"
+          SERVICES="redis twitch_service"
 
           echo "== Free disk (before build) =="
           docker builder prune -af || true
           docker image prune -f || true
 
-          echo "== Stop/remove old backend app containers =="
+          echo "== Stop/remove old twitch containers =="
           docker compose -f "\$COMPOSE_FILE" stop \$SERVICES || true
           docker compose -f "\$COMPOSE_FILE" rm -f \$SERVICES || true
 
-          echo "== Remove old local images for backend app services =="
-          for svc in \$SERVICES; do
-            IDS="\$(docker images -q --filter "label=com.docker.compose.service=\$svc" || true)"
-            if [ -n "\${IDS}" ]; then
-              docker rmi -f \${IDS} || true
-            fi
-          done
-
-          echo "== Start infra =="
-          docker compose -f "\$COMPOSE_FILE" up -d redis rabbitmq kafka
-
-          echo "== Start pokeapi =="
-          docker compose -f "\$COMPOSE_FILE" up -d pokeapi --no-build --pull never \
-            || docker compose -f "\$COMPOSE_FILE" up -d pokeapi --pull missing
-
-          echo "== Rebuild & start backend services =="
-          docker compose -f "\$COMPOSE_FILE" up -d --build --no-deps --force-recreate \$SERVICES
+          echo "== Rebuild & start twitch stack =="
+          docker compose -f "\$COMPOSE_FILE" up -d --build --no-deps --force-recreate twitch_service
+          docker compose -f "\$COMPOSE_FILE" up -d redis
 
           docker compose -f "\$COMPOSE_FILE" ps
           EOF
 
-      - name: Show backend logs on failure
+      - name: Show twitch logs on failure
         if: failure()
         run: |
           ssh -T \
@@ -202,5 +179,5 @@ jobs:
             -i ~/.ssh/id_ed25519 \
             -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
           cd "$REMOTE_PATH" || exit 0
-          docker compose -f docker-compose.backend.yml logs --tail=200
+          docker compose -f docker-compose.twitch.yml logs --tail=200
           EOF
