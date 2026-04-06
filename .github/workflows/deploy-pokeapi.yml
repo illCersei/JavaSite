@@ -73,7 +73,7 @@ jobs:
         run: |
           rsync -az \
             -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
-            docker-compose.twitch.yml "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
+            docker-compose.twitch.yml "$SSH_USER@$SSH_HOST:$REMOTE_PATH/docker-compose.twitch.yml"
 
       - name: Upload twitch .env
         env:
@@ -101,6 +101,10 @@ jobs:
           ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<'EOF'
           set -euo pipefail
           cd "$REMOTE_PATH"
+
+          echo "Remote pwd=$(pwd)"
+          ls -la
+          test -f docker-compose.twitch.yml || { echo "docker-compose.twitch.yml not found in $REMOTE_PATH"; exit 1; }
 
           # Cleanup any leftover temp dirs in deploy folder
           for d in ./*-temp ./*.tmp; do
