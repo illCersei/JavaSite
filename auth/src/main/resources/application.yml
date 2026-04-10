@@ -43,6 +43,21 @@ spring:
     template:
       default-topic: user-registration
 
+management:
+  server:
+    port: ${MONITORING_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+metrics:
+  auth:
+    username: ${METRICS_AUTH_USERNAME}
+    password: ${METRICS_AUTH_PASSWORD}
 
 jwt:
   secret: ${JWT_SECRET}

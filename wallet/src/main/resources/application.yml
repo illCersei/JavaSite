@@ -39,6 +39,17 @@ spring:
     template:
       default-topic: wallet-events
 
+management:
+  server:
+    port: ${MONITORING_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000

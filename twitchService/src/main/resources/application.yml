@@ -28,6 +28,17 @@ spring:
       host: ${SPRING_DATA_REDIS_HOST}
       port: ${SPRING_DATA_REDIS_PORT}
 
+management:
+  server:
+    port: ${MONITORING_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
 server:
   port: ${SERVER_PORT}
 

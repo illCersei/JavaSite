@@ -76,8 +76,8 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: ${DB_PORT}
       REDIS_CONNECTION_STRING: redis://redis_container:${SPRING_DATA_REDIS_PORT}/0
-    volumes:
-      - ./pokeapi-data/data/v2/csv:/code/data/v2/csv:ro
+    #volumes:
+     # - ./pokeapi-data/data/v2/csv:/code/data/v2/csv:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,7 +94,9 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8001:${SERVER_PORT}"
+      - "9001:${MONITORING_PORT}"
     environment:
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -125,7 +127,9 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8002:${SERVER_PORT}"
+      - "9002:${MONITORING_PORT}"
     environment:
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -150,7 +154,9 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8003:${SERVER_PORT}"
+      - "9003:${MONITORING_PORT}"
     environment:
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
@@ -172,7 +178,9 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8004:${SERVER_PORT}"
+      - "9004:${MONITORING_PORT}"
     environment:
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -203,7 +211,9 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8005:${SERVER_PORT}"
+      - "9005:${MONITORING_PORT}"
     environment:
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -236,7 +246,9 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8006:${SERVER_PORT}"
+      - "9006:${MONITORING_PORT}"
     environment:
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor

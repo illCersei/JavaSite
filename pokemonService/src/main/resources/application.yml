@@ -41,6 +41,17 @@ spring:
     listener:
       missing-topics-fatal: false
 
+management:
+  server:
+    port: ${MONITORING_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
 server:
   port: ${SERVER_PORT:8006}
 
