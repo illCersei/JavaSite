@@ -48,7 +48,11 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8001:${SERVER_PORT}"
+      - "127.0.0.1:9001:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -72,7 +76,11 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8003:${SERVER_PORT}"
+      - "127.0.0.1:9003:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
       SPRING_RABBITMQ_PORT: ${SPRING_RABBITMQ_PORT}
@@ -90,7 +98,11 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8004:${SERVER_PORT}"
+      - "127.0.0.1:9004:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -113,7 +125,11 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8005:${SERVER_PORT}"
+      - "127.0.0.1:9005:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
@@ -138,7 +154,11 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8006:${SERVER_PORT}"
+      - "127.0.0.1:9006:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       JWT_SECRET: ${JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor

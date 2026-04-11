@@ -47,3 +47,8 @@ application.properties
 *.gz
 
 application-local.yml
+
+prometheus.yml
+docker-compose.metrics.backend.yml
+docker-compose.metrics.twitch.yml
+/monitoring/

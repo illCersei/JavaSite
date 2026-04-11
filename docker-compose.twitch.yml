@@ -17,7 +17,11 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "8002:${SERVER_PORT}"
+      - "127.0.0.1:9002:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
+      MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}

@@ -96,6 +96,8 @@ services:
       - "8001:${SERVER_PORT}"
       - "9001:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
@@ -129,6 +131,8 @@ services:
       - "8002:${SERVER_PORT}"
       - "9002:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
@@ -156,6 +160,8 @@ services:
       - "8003:${SERVER_PORT}"
       - "9003:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -180,6 +186,8 @@ services:
       - "8004:${SERVER_PORT}"
       - "9004:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
@@ -213,6 +221,8 @@ services:
       - "8005:${SERVER_PORT}"
       - "9005:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
@@ -248,6 +258,8 @@ services:
       - "8006:${SERVER_PORT}"
       - "9006:${MONITORING_PORT}"
     environment:
+      METRICS_USERNAME: ${METRICS_USERNAME}
+      METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       JWT_SECRET: ${JWT_SECRET}

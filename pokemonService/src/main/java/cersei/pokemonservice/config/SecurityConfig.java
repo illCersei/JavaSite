@@ -3,6 +3,7 @@ package cersei.pokemonservice.config;
 import cersei.common.error.CustomAccessDeniedHandler;
 import cersei.common.error.CustomBearerTokenAuthenticationEntryPoint;
 import cersei.common.error.jwt.JwtAuthenticationConverterConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,9 +12,13 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -41,14 +46,29 @@ public class SecurityConfig {
     }
 
     @Bean
+    UserDetailsService userDetailsService(
+            PasswordEncoder passwordEncoder,
+            @Value("${metrics.username}") String username,
+            @Value("${metrics.password}") String password
+    ) {
+        UserDetails prometheusUser = User.withUsername(username)
+                .password(passwordEncoder.encode(password))
+                .roles("PROMETHEUS")
+                .build();
+
+        return new InMemoryUserDetailsManager(prometheusUser);
+    }
+
+    @Bean
     @Order(1)
     SecurityFilterChain actuatorSecurity(HttpSecurity http) throws Exception {
         return http
                 .securityMatcher(EndpointRequest.toAnyEndpoint())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
+                        .anyRequest().hasRole("PROMETHEUS")
                 )
+                .httpBasic(Customizer.withDefaults())
                 .build();
     }
 

@@ -52,6 +52,10 @@ management:
     health:
       show-details: always
 
+metrics:
+  username: ${METRICS_USERNAME}
+  password: ${METRICS_PASSWORD}
+
 server:
   port: ${SERVER_PORT:8006}
 
