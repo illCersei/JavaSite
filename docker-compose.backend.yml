@@ -77,8 +77,10 @@ services:
     volumes:
       - ./logs/auth:/app/logs
     networks:
-      - default
-      - monitoring_net
+      default:
+      monitoring_net:
+        aliases:
+          - auth-service
 
   test_api:
     image: ghcr.io/illcersei/test-api:main
@@ -101,8 +103,10 @@ services:
     volumes:
       - ./logs/test_api:/app/logs
     networks:
-      - default
-      - monitoring_net
+      default:
+      monitoring_net:
+        aliases:
+          - test-service
 
   profile_service:
     image: ghcr.io/illcersei/profile-service:main
@@ -130,8 +134,10 @@ services:
     volumes:
       - ./logs/profile:/app/logs
     networks:
-      - default
-      - monitoring_net
+      default:
+      monitoring_net:
+        aliases:
+          - profile-service
 
   wallet_service:
     image: ghcr.io/illcersei/wallet-service:main
@@ -161,8 +167,10 @@ services:
     volumes:
       - ./logs/wallet:/app/logs
     networks:
-      - default
-      - monitoring_net
+      default:
+      monitoring_net:
+        aliases:
+          - wallet-service
 
   pokemon_service:
     image: ghcr.io/illcersei/pokemon-service:main
@@ -194,8 +202,10 @@ services:
     volumes:
       - ./logs/pokemon:/app/logs
     networks:
-      - default
-      - monitoring_net
+      default:
+      monitoring_net:
+        aliases:
+          - pokemon-service
 
 volumes:
   redis_data:
