@@ -53,6 +53,8 @@ services:
   auth_service:
     image: ghcr.io/illcersei/auth-service:main
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8001:${SERVER_PORT}"
     environment:
@@ -81,6 +83,8 @@ services:
   test_api:
     image: ghcr.io/illcersei/test-api:main
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8003:${SERVER_PORT}"
     environment:
@@ -103,6 +107,8 @@ services:
   profile_service:
     image: ghcr.io/illcersei/profile-service:main
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8004:${SERVER_PORT}"
     environment:
@@ -130,6 +136,8 @@ services:
   wallet_service:
     image: ghcr.io/illcersei/wallet-service:main
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8005:${SERVER_PORT}"
     environment:
@@ -159,6 +167,8 @@ services:
   pokemon_service:
     image: ghcr.io/illcersei/pokemon-service:main
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8006:${SERVER_PORT}"
     environment:
