@@ -9,6 +9,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - default
+      - monitoring_net
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -19,6 +22,9 @@ services:
     mem_limit: 512m
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - default
+      - monitoring_net
 
   kafka:
     image: apache/kafka:latest
@@ -40,15 +46,15 @@ services:
       KAFKA_NUM_PARTITIONS: 3
     volumes:
       - kafka_data:/var/lib/kafka/data
+    networks:
+      - default
+      - monitoring_net
 
   auth_service:
     image: ghcr.io/illcersei/auth-service:main
     restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     ports:
       - "8001:${SERVER_PORT}"
-      - "127.0.0.1:9001:${MONITORING_PORT}"
     environment:
       METRICS_USERNAME: ${METRICS_USERNAME}
       METRICS_PASSWORD: ${METRICS_PASSWORD}
@@ -68,15 +74,15 @@ services:
       - kafka
     volumes:
       - ./logs/auth:/app/logs
+    networks:
+      - default
+      - monitoring_net
 
   test_api:
     image: ghcr.io/illcersei/test-api:main
     restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     ports:
       - "8003:${SERVER_PORT}"
-      - "127.0.0.1:9003:${MONITORING_PORT}"
     environment:
       METRICS_USERNAME: ${METRICS_USERNAME}
       METRICS_PASSWORD: ${METRICS_PASSWORD}
@@ -90,15 +96,15 @@ services:
       - rabbitmq
     volumes:
       - ./logs/test_api:/app/logs
+    networks:
+      - default
+      - monitoring_net
 
   profile_service:
     image: ghcr.io/illcersei/profile-service:main
     restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     ports:
       - "8004:${SERVER_PORT}"
-      - "127.0.0.1:9004:${MONITORING_PORT}"
     environment:
       METRICS_USERNAME: ${METRICS_USERNAME}
       METRICS_PASSWORD: ${METRICS_PASSWORD}
@@ -117,15 +123,15 @@ services:
       - kafka
     volumes:
       - ./logs/profile:/app/logs
+    networks:
+      - default
+      - monitoring_net
 
   wallet_service:
     image: ghcr.io/illcersei/wallet-service:main
     restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     ports:
       - "8005:${SERVER_PORT}"
-      - "127.0.0.1:9005:${MONITORING_PORT}"
     environment:
       METRICS_USERNAME: ${METRICS_USERNAME}
       METRICS_PASSWORD: ${METRICS_PASSWORD}
@@ -146,15 +152,15 @@ services:
       - kafka
     volumes:
       - ./logs/wallet:/app/logs
+    networks:
+      - default
+      - monitoring_net
 
   pokemon_service:
     image: ghcr.io/illcersei/pokemon-service:main
     restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     ports:
       - "8006:${SERVER_PORT}"
-      - "127.0.0.1:9006:${MONITORING_PORT}"
     environment:
       METRICS_USERNAME: ${METRICS_USERNAME}
       METRICS_PASSWORD: ${METRICS_PASSWORD}
@@ -177,8 +183,15 @@ services:
         condition: service_started
     volumes:
       - ./logs/pokemon:/app/logs
+    networks:
+      - default
+      - monitoring_net
 
 volumes:
   redis_data:
   rabbitmq_data:
   kafka_data:
+
+networks:
+  monitoring_net:
+    external: true
