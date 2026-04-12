@@ -30,5 +30,13 @@ metrics:
 server:
   port: ${SERVER_PORT:8000}
 
+logging:
+  level:
+    org.springframework: info
+    org.hibernate.SQL: info
+    cersei.testapi: info
+  file:
+    name: logs/testapi.log
+
 jwt:
   secret: ${JWT_SECRET:AHHAHAHAHAHHAHJSDBGJHKSDABG232234FSHKFJHS}
