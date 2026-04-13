@@ -15,10 +15,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class LoginListener {
 
-    /**
-     * Функция Листенера логина
-     * @param message String - статус логина
-     */
     @RabbitListener(queues = "test")
     public void receiveLogin(String message) {
         log.info(message);

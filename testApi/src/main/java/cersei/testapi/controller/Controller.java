@@ -15,30 +15,18 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class Controller {
 
-    /**
-     * Эндпоинт требующий для доступа токен
-     * @return - строка
-     */
     @GetMapping("/hello")
     public ResponseEntity<String> hello(){
         log.info("Hello endpoint called");
         return ResponseEntity.ok("Hello World");
     }
 
-    /**
-     * Эндпоинт, требующий для доступа токен, имеющий роль <b>ADMIN</b>
-     * @return - строка
-     */
     @GetMapping("/admin")
     public ResponseEntity<String> admin(){
         log.info("Admin endpoint called");
         return ResponseEntity.ok("Вы одмен");
     }
 
-    /**
-     * Эндпоинт доступный дез логина
-     * @return - строка
-     */
     @GetMapping("/public/ping")
     public ResponseEntity<String> ping(){
         log.info("Received ping request");
