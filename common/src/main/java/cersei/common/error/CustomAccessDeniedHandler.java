@@ -2,12 +2,15 @@ package cersei.common.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
 import java.io.IOException;
 
+@Slf4j
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+
 
     @Override
     public void handle(HttpServletRequest request,
@@ -25,6 +28,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         }
         """;
 
+        //В теории можно распарсить реквест
+        log.info("403, Forbidden");
         response.getWriter().write(json);
     }
 }

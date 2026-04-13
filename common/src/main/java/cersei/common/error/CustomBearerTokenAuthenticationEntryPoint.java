@@ -2,11 +2,13 @@ package cersei.common.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import java.io.IOException;
 
+@Slf4j
 public class CustomBearerTokenAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
@@ -25,6 +27,8 @@ public class CustomBearerTokenAuthenticationEntryPoint implements Authentication
         }
         """;
 
+        //В теории можно распарсить реквест
+        log.info("401, Unauthorized");
         response.getWriter().write(json);
     }
 }
