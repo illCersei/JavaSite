@@ -1,5 +1,6 @@
 package cersei.testapi.messaging;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
  * </p>
  */
 @Component
+@Slf4j
 public class LoginListener {
 
     /**
@@ -19,6 +21,6 @@ public class LoginListener {
      */
     @RabbitListener(queues = "test")
     public void receiveLogin(String message) {
-        System.out.println(message);
+        log.info(message);
     }
 }
