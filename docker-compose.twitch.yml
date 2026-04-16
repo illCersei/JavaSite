@@ -34,28 +34,5 @@ services:
     volumes:
       - ./logs/twitch:/app/logs
 
-  pokeapi:
-    image: pokeapi/pokeapi:master
-    container_name: pokeapi
-    profiles:
-      - pokeapi
-    restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "8088:80"
-    environment:
-      POSTGRES_DB: ${POKEAPI_DB}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_HOST: ${DB_HOST}
-      POSTGRES_PORT: ${DB_PORT}
-      REDIS_CONNECTION_STRING: redis://redis:${SPRING_DATA_REDIS_PORT}/0
-    volumes:
-      - ./pokeapi-data/data/v2/csv:/code/data/v2/csv:ro
-    depends_on:
-      redis:
-        condition: service_healthy
-
 volumes:
   redis_data:

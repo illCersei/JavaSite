@@ -191,7 +191,6 @@ services:
       SPRING_DATA_REDIS_HOST: ${SPRING_DATA_REDIS_HOST}
       SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
-      POKEAPI_BASE_URL: ${POKEAPI_BASE_URL}
     depends_on:
       redis:
         condition: service_healthy

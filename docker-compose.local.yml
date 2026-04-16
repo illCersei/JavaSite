@@ -16,6 +16,7 @@ services:
       retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
 
   redis:
     image: redis:7-alpine
@@ -60,29 +61,6 @@ services:
       KAFKA_NUM_PARTITIONS: 3
     volumes:
       - kafka_data:/var/lib/kafka/data
-
-  pokeapi:
-    image: pokeapi/pokeapi:master
-    container_name: pokeapi
-    restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "8088:80"
-    environment:
-      POSTGRES_DB: ${POKEAPI_DB}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: ${DB_PORT}
-      REDIS_CONNECTION_STRING: redis://redis_container:${SPRING_DATA_REDIS_PORT}/0
-    #volumes:
-     # - ./pokeapi-data/data/v2/csv:/code/data/v2/csv:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
 
   auth_service:
     build:
@@ -269,15 +247,12 @@ services:
       SPRING_DATA_REDIS_HOST: redis_container
       SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
-      POKEAPI_BASE_URL: http://pokeapi
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
-        condition: service_started
-      pokeapi:
         condition: service_started
       wallet_service:
         condition: service_started

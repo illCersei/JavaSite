@@ -82,7 +82,7 @@ public class GachaService {
                     "GACHA_REFUND",
                     spinId,
                     "GACHA_REFUND",
-                    "{\"reason\":\"POKEAPI_OR_CACHE_FAILURE\"}",
+                    "{\"reason\":\"POKEMON_CATALOG_FAILURE\"}",
                     spinId);
         } catch (Exception ex) {
             log.error("Gacha refund failed, manual reconciliation may be needed spinId={}", spinId, ex);

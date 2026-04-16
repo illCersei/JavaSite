@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/catalog")
 @RequiredArgsConstructor
-@Tag(name = "Pokemon", description = "Каталог покемонов (PokeAPI + Redis)")
+@Tag(name = "Pokemon", description = "Каталог покемонов")
 public class PokemonController {
 
     private final PokemonCatalogService pokemonCatalogService;

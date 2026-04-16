@@ -17,7 +17,7 @@ import java.time.Duration;
 @Configuration
 public class RedisCacheConfig {
 
-    public static final String POKE_API_POKEMON_CACHE = "pokeApiPokemonV2";
+    public static final String POKEMON_CACHE = "pokemonCatalogV1";
 
     @Bean
     public RedisCacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
@@ -28,12 +28,12 @@ public class RedisCacheConfig {
         Jackson2JsonRedisSerializer<PokemonSummaryDto> pokemonSerializer =
                 new Jackson2JsonRedisSerializer<>(objectMapper, PokemonSummaryDto.class);
 
-        RedisCacheConfiguration pokeApi = RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration pokemonCatalog = RedisCacheConfiguration.defaultCacheConfig()
                 .disableCachingNullValues()
                 .serializeValuesWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(pokemonSerializer))
                 .entryTtl(Duration.ofDays(7));
 
-        return RedisCacheManager.builder(connectionFactory).cacheDefaults(pokeApi).build();
+        return RedisCacheManager.builder(connectionFactory).cacheDefaults(pokemonCatalog).build();
     }
 }

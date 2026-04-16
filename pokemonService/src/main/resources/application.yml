@@ -59,12 +59,6 @@ metrics:
 server:
   port: ${SERVER_PORT:8006}
 
-pokeapi:
-  base-url: ${POKEAPI_BASE_URL:http://localhost:8088}
-  sprite-url-template: ${POKEAPI_SPRITE_URL_TEMPLATE:https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png}
-  http:
-    timeout-seconds: 25
-
 wallet:
   kafka:
     commands-topic: ${WALLET_KAFKA_COMMANDS_TOPIC:wallet.commands}
@@ -73,6 +67,7 @@ wallet:
 
 pokemon:
   instance-id: ${POKEMON_INSTANCE_ID:}
+  sprite-url-template: ${POKEMON_SPRITE_URL_TEMPLATE:https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png}
   gacha:
     cost-minor: ${POKEMON_GACHA_COST_MINOR:100}
     max-pokemon-id: ${POKEMON_GACHA_MAX_ID:1025}
