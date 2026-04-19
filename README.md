@@ -1,107 +1,41 @@
 # JavaSite
 
-Репозиторий пет проекта backend-микросервисов на **Spring Boot 3.5** и **Java 17** для изучения backend разработки,
-микросервисной архитектуры, java-spring фреймворка.
+Пет-проект: **набор связанных backend-сервисов** на **Spring Boot** и **Java 17** в одном Maven-монорепозитории.
 
 ---
 
-## Реализовано:
+## Сервисы
 
-| Возможность                                                                            | Сервисы |
-|----------------------------------------------------------------------------------------|---------|
-| Регистрация, логин, JWT, refresh                                                       | `auth` |
-| Профиль пользователя, реакция на события                                               | `profile` |
-| Данные Twitch, кэш Redis                                                               | `twitchService` |
-| Кошелёк, периодическая награда, Kafka-команды                                          | `wallet` |
-| Каталог покемонов (PokeAPI), возможность роллять покемнов за игровую валюту, инвентарь | `pokemonService` |
-| Тестовый API (RabbitMQ)                                                                | `testApi` |
-| Общие security/error утилиты                                                           | `common` |
-
+| Область      | Суть                                                                                          |
+|--------------|-----------------------------------------------------------------------------------------------|
+| **auth**     | Регистрация и вход, **JWT** (access) и **refresh**-токены; общий секрет для resource servers. |
+| **profile**  | Профиль пользователя и реакция на события приложения.                                         |
+| **twitch**   | Интеграция с данными Twitch, собранными мною, **кэш в Redis**.                                |
+| **wallet**   | Баланс, периодическая награда, **Kafka**: команды/ответы, журнал проводок с идемпотентностью  |
+| **pokemon**  | Сервис покемонов, инвентаря покемонов                                                         |
+| **test API** | Демонстрация **RabbitMQ**.                                                                    |
+| **common**   | Общие коспоненты для сервисов                                                                 |
 ---
+## Структура репозитория
 
-## Карта проекта
-
-```
-JavaSite/
-├── auth/
-├── profile/
-├── wallet/
-├── twitchService/
-├── pokemonService/
-├── testApi/
-├── common/            
-├── docker-compose.yml
-├── POKEAPI.md - это сторонний сервис, взятый с просторов гитхаба и запущенный на моей сервере
-└── pom.xml
-```
-
-TODO: Добавить подробности по каждому сервису — в **README соответствующей папки модуля**.
+Детали по API и конфигурации модулей — в **README соответствующей папки** (по мере наполнения).
 
 ---
 
 ## Стек
 
-| Категория | Технологии                                                                     |
-|--------|--------------------------------------------------------------------------------|
-| Язык | Java 17, Maven                                                                 |
-| Framework | Spring Boot 3.5 (Web, Data JPA, Security OAuth2 Resource Server, Kafka, Redis) |
-| БД | PostgreSQL                                                                     |
-| Инфраструктура | Docker Compose: Redis, RabbitMQ, Kafka, PokeAPI (image) - НЕ МОЙ               |
-| CI/CD | GitHub Actions (`deploy-backend.yml`, `pokeapi-setup.yml`(не работает))        |
+| Категория      | Технологии                                                                     |
+|----------------|--------------------------------------------------------------------------------|
+| Язык           | Java 17, Maven                                                                 |
+| Framework      | Spring Boot 3.5 (Web, Data JPA, Security OAuth2 Resource Server, Kafka, Redis) |
+| Данные         | PostgreSQL, Redis                                                              |
+| Инфраструктура | Docker Compose: Redis, RabbitMQ, Kafka                                         |
+| CI             | GitHub Actions (сборка и деплой backend                                        |
+| Мониторинг     | Prometheus + Grafana                                                           |
 
 ---
 
-## Быстрый старт (локально)
-
-1. **PostgreSQL** на хосте (или в Docker), заполнить `.env`:
-   - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`
-   - `JWT_SECRET`, порты Kafka/RabbitMQ/Redis по необходимости
-2. Запуск:
-   ```bash
-   docker compose up -d --build
-   ```
-3. Базовые URL (порты из `.env`, примеры типичны для `SERVER_PORT` на каждом сервисе):
-
-| Сервис | Base URL (пример) |
-|--------|-------------------|
-| auth | `http://localhost:8001/api/v1/auth` |
-| twitchService | `http://localhost:8002/api/v1/twitch` |
-| testApi | `http://localhost:8003/api/v1/test` |
-| profile | `http://localhost:8004/api/v1/profile` |
-| wallet | `http://localhost:8005/api/v1/wallet` |
-| pokemonService | `http://localhost:8006/api/v1/pokemon` |
-
-**Swagger UI** (если включён springdoc в модуле): `/swagger-ui/index.html` относительно base path сервиса.
-
-## CI/CD
-
-| Workflow                                                                     | Когда | Описание |
-|------------------------------------------------------------------------------|-------|----------|
-| `.github/workflows/deploy-backend.yml`                                       | push `main` / вручную | Сборка JAR, rsync на сервер, `docker compose up` для сервисов приложений; PokeAPI только старт из образа |
-| `.github/workflows/pokeapi-setup.yml` !!!ПОКА ЧТО НЕ РАБОТАЕТ ДЕЛАЕМ ВРУЧНУЮ | вручную | Полная инициализация данных PokeAPI по [POKEAPI.md](POKEAPI.md) |
-
-**Secrets:** `SERVER_HOST`, `SERVER_PORT`, `SERVER_USER`, `SERVER_SSH_KEY`, `SERVER_KNOWN_HOSTS`, `BACKEND_REMOTE_PATH`, `BACKEND_ENV_FILE`.
-
----
-
-## Деплой на 2 сервера (текущее решение)
-
-- **Старый сервер**: `twitch_service` + `pokeapi`
-- **Новый сервер**: `auth_service`, `profile_service`, `test_api`, `wallet_service`, `pokemon_service` + инфраструктура (`redis`, `rabbitmq`, `kafka`)
-
-Важно: `pokemon_service` теперь ждёт `POKEAPI_BASE_URL` как внешний URL (например `http://<OLD_SERVER_IP>:8088`), т.к. `pokeapi` живёт на другом сервере.
-
----
-
-## Логи
-
-Каталоги на хосте: `./logs/...` (см. `docker-compose.yml`).
-
----
-
-## TODO: СКРИНЫ
-
+## Мониторинг
 
 
 ---
-
