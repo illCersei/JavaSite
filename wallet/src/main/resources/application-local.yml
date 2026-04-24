@@ -1,0 +1,94 @@
+spring:
+  config:
+    import: optional:file:.env.local[.properties]
+  application:
+    name: wallet
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  mvc:
+    servlet:
+      path: /api/v1/wallet
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: wallet-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      missing-topics-fatal: false
+    template:
+      default-topic: wallet-events
+
+management:
+  server:
+    port: 9005
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+metrics:
+  username: ${METRICS_USERNAME}
+  password: ${METRICS_PASSWORD}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 3600000
+
+logging:
+  level:
+    org.springframework: info
+    org.hibernate.SQL: info
+    cersei.wallet: info
+  file:
+    name: logs/wallet.log
+
+wallet:
+  periodic-reward:
+    enabled: true
+    amount-minor: ${WALLET_PERIODIC_REWARD_AMOUNT:1000}
+    period-hours: ${WALLET_PERIODIC_REWARD_PERIOD_HOURS:24}
+    period-minutes: ${WALLET_PERIODIC_REWARD_PERIOD_MINUTES:10}
+    strategy: ${WALLET_PERIODIC_REWARD_STRATEGY:FIXED_WINDOW}
+    zone-id: ${WALLET_PERIODIC_REWARD_ZONE:UTC}
+    reference-type: PERIODIC_REWARD
+    entry-type: PERIODIC_REWARD
+  security:
+    allow-arbitrary-credit-debit: ${WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT:false}
+    privileged-roles: ${WALLET_PRIVILEGED_ROLES:ADMIN}
+  kafka:
+    commands-topic: wallet.commands
+    replies-topic: wallet.commands.replies
+    events-topic: wallet.events
+    listener-enabled: false
+  outbox:
+    enabled: false
+    publish-interval-ms: 2000
+
+server:
+  port: 8005

@@ -1,0 +1,87 @@
+spring:
+  config:
+    import: optional:file:.env.local[.properties]
+  application:
+    name: pokemonService
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  mvc:
+    servlet:
+      path: /api/v1/pokemon
+
+  cache:
+    type: redis
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+  kafka:
+    bootstrap-servers: localhost:${SPRING_KAFKA_PORT}
+    consumer:
+      group-id: pokemon-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      missing-topics-fatal: false
+
+management:
+  server:
+    port: 9006
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+metrics:
+  username: ${METRICS_USERNAME}
+  password: ${METRICS_PASSWORD}
+
+server:
+  port: 8006
+
+wallet:
+  kafka:
+    commands-topic: ${WALLET_KAFKA_COMMANDS_TOPIC:wallet.commands}
+    replies-topic: ${WALLET_KAFKA_REPLIES_TOPIC:wallet.commands.replies}
+    rpc-timeout-ms: ${WALLET_KAFKA_RPC_TIMEOUT_MS:15000}
+
+pokemon:
+  instance-id: ${POKEMON_INSTANCE_ID:}
+  sprite-url-template: ${POKEMON_SPRITE_URL_TEMPLATE:https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png}
+  gacha:
+    cost-minor: ${POKEMON_GACHA_COST_MINOR:100}
+    max-pokemon-id: ${POKEMON_GACHA_MAX_ID:1025}
+  kafka:
+    gacha-events-topic: ${POKEMON_KAFKA_GACHA_TOPIC:pokemon.gacha.events}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+logging:
+  level:
+    org.springframework: info
+    cersei.pokemonservice: info
+  file:
+    name: logs/pokemonservice.log

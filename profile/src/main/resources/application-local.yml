@@ -1,0 +1,70 @@
+spring:
+  config:
+    import: optional:file:.env.local[.properties]
+  application:
+    name: profile
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  mvc:
+    servlet:
+      path: /api/v1/profile
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+  kafka:
+    bootstrap-servers: localhost:${SPRING_KAFKA_PORT}
+    consumer:
+      group-id: auth-consumer-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      missing-topics-fatal: false
+    template:
+      default-topic: user-registration
+
+management:
+  server:
+    port: 9004
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+metrics:
+  username: ${METRICS_USERNAME}
+  password: ${METRICS_PASSWORD}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 3600000
+
+logging:
+  level:
+    org.springframework: info
+    org.hibernate.SQL: info
+    cersei.profile: info
+  file:
+    name: logs/profile.log
+
+server:
+  port: 8004

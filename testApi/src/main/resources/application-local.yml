@@ -1,0 +1,44 @@
+spring:
+  config:
+    import: optional:file:.env.local[.properties]
+  application:
+    name: testApi
+
+  mvc:
+    servlet:
+      path: /api/v1/test
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST}
+    port: ${SPRING_RABBITMQ_PORT}
+    username: ${SPRING_RABBITMQ_USERNAME}
+    password: ${SPRING_RABBITMQ_PASSWORD}
+
+management:
+  server:
+    port: 9003
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+metrics:
+  username: ${METRICS_USERNAME}
+  password: ${METRICS_PASSWORD}
+
+server:
+  port: 8003
+
+logging:
+  level:
+    org.springframework: info
+    org.hibernate.SQL: info
+    cersei.testapi: info
+  file:
+    name: logs/testapi.log
+
+jwt:
+  secret: ${JWT_SECRET:AHHAHAHAHAHHAHJSDBGJHKSDABG232234FSHKFJHS}
