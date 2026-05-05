@@ -5,7 +5,7 @@ spring:
     name: auth
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/auth_db
     username: ${DB_USER}
     password: ${DB_PASSWORD}
 
