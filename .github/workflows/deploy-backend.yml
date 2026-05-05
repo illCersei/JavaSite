@@ -8,7 +8,7 @@ on:
       - 'profile/**'
       - 'testApi/**'
       - 'wallet/**'
-      - 'pokemonService/**'
+      - 'octopusService/**'
       - 'pom.xml'
       - 'docker-compose.backend.yml'
       - '.github/workflows/deploy-backend.yml'
@@ -30,11 +30,10 @@ jobs:
       profile: ${{ steps.filter.outputs.profile }}
       testApi: ${{ steps.filter.outputs.testApi }}
       wallet: ${{ steps.filter.outputs.wallet }}
-      pokemonService: ${{ steps.filter.outputs.pokemonService }}
+      octopusService: ${{ steps.filter.outputs.octopusService }}
       all: ${{ steps.filter.outputs.all }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Detect changed backend services
         id: filter
         uses: dorny/paths-filter@v3
@@ -55,15 +54,14 @@ jobs:
             wallet:
               - 'wallet/**'
               - 'pom.xml'
-            pokemonService:
-              - 'pokemonService/**'
+            octopusService:
+              - 'octopusService/**'
               - 'pom.xml'
 
   build-and-deploy:
     runs-on: ubuntu-latest
     needs: detect
     timeout-minutes: 90
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -79,7 +77,7 @@ jobs:
           cache: maven
 
       - name: Build backend jars
-        run: mvn -B package -DskipTests -pl auth,profile,testApi,wallet,pokemonService -am
+        run: mvn -B package -DskipTests -pl auth,profile,testApi,wallet,octopusService -am
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -132,16 +130,16 @@ jobs:
             ghcr.io/${{ env.OWNER_LC }}/wallet-service:main
             ghcr.io/${{ env.OWNER_LC }}/wallet-service:sha-${{ github.sha }}
 
-      - name: Build and push pokemon image
-        if: github.event_name == 'workflow_dispatch' || needs.detect.outputs.pokemonService == 'true'
+      - name: Build and push octopus image
+        if: github.event_name == 'workflow_dispatch' || needs.detect.outputs.octopusService == 'true'
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: pokemonService/Dockerfile
+          file: octopusService/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/pokemon-service:main
-            ghcr.io/${{ env.OWNER_LC }}/pokemon-service:sha-${{ github.sha }}
+            ghcr.io/${{ env.OWNER_LC }}/octopus-service:main
+            ghcr.io/${{ env.OWNER_LC }}/octopus-service:sha-${{ github.sha }}
 
       - name: Install SSH tools
         run: |
@@ -159,7 +157,6 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-
           : > ~/.ssh/known_hosts
           if ssh-keyscan -p "${SSH_PORT}" -T 60 -t rsa,ecdsa,ed25519 "${SSH_HOST}" >> ~/.ssh/known_hosts 2>/dev/null \
             && grep -q '^[^#[:space:]]' ~/.ssh/known_hosts; then
@@ -179,8 +176,7 @@ jobs:
           SSH_USER: ${{ secrets.BACKEND_SERVER_USER }}
           REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
         run: |
-          ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            "mkdir -p \"$REMOTE_PATH\""
+          ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "mkdir -p \"$REMOTE_PATH\""
 
       - name: Upload backend compose
         env:
@@ -189,9 +185,7 @@ jobs:
           SSH_USER: ${{ secrets.BACKEND_SERVER_USER }}
           REMOTE_PATH: ${{ secrets.BACKEND_REMOTE_PATH }}
         run: |
-          rsync -az \
-            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
-            docker-compose.backend.yml "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
+          rsync -az -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" docker-compose.backend.yml "$SSH_USER@$SSH_HOST:$REMOTE_PATH/"
 
       - name: Upload backend .env
         env:
@@ -203,9 +197,7 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s\n' "$BACKEND_ENV_FILE" > .backend.env
-          rsync -az \
-            -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" \
-            .backend.env "$SSH_USER@$SSH_HOST:$REMOTE_PATH/.env"
+          rsync -az -e "ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT" .backend.env "$SSH_USER@$SSH_HOST:$REMOTE_PATH/.env"
           rm -f .backend.env
 
       - name: Deploy backend stack
@@ -220,15 +212,11 @@ jobs:
           ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
           set -euo pipefail
           cd "$REMOTE_PATH"
-
-          mkdir -p logs/auth logs/profile logs/test_api logs/wallet logs/pokemon
-
+          mkdir -p logs/auth logs/profile logs/test_api logs/wallet logs/octopus
           echo "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_PULL_USERNAME" --password-stdin
-
           docker compose -f docker-compose.backend.yml up -d redis rabbitmq kafka
-          docker compose -f docker-compose.backend.yml pull auth_service test_api profile_service wallet_service pokemon_service
-          docker compose -f docker-compose.backend.yml up -d auth_service test_api profile_service wallet_service pokemon_service
-
+          docker compose -f docker-compose.backend.yml pull auth_service test_api profile_service wallet_service octopus_service
+          docker compose -f docker-compose.backend.yml up -d auth_service test_api profile_service wallet_service octopus_service
           docker compose -f docker-compose.backend.yml ps
           EOF
 

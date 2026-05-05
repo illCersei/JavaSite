@@ -78,7 +78,8 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
+      AUTH_DB_NAME: auth_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/auth_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -113,6 +114,7 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
+      TWITCH_DB_NAME: twitch_monitor
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
@@ -168,7 +170,8 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
+      PROFILE_DB_NAME: profile_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/profile_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -203,7 +206,8 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
+      WALLET_DB_NAME: wallet_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/wallet_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -224,11 +228,11 @@ services:
     volumes:
       - ./logs/wallet:/app/logs
 
-  pokemon_service:
+  octopus_service:
     build:
       context: .
-      dockerfile: pokemonService/Dockerfile
-    container_name: pokemon_service
+      dockerfile: octopusService/Dockerfile
+    container_name: octopus_service
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -241,7 +245,8 @@ services:
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       JWT_SECRET: ${JWT_SECRET}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
+      OCTOPUS_DB_NAME: octopus_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/octopus_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_DATA_REDIS_HOST: redis_container
@@ -257,7 +262,7 @@ services:
       wallet_service:
         condition: service_started
     volumes:
-      - ./logs/pokemon:/app/logs
+      - ./logs/octopus:/app/logs
 
 volumes:
   postgres_data:

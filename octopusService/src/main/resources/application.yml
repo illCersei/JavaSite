@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: octopusService
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${OCTOPUS_DB_NAME:octopus_db}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  mvc:
+    servlet:
+      path: /api/v1/octopus
+
+  cache:
+    type: redis
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+  kafka:
+    bootstrap-servers: kafka_container:9092
+    consumer:
+      group-id: octopus-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      missing-topics-fatal: false
+
+management:
+  server:
+    port: ${MONITORING_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+metrics:
+  username: ${METRICS_USERNAME}
+  password: ${METRICS_PASSWORD}
+
+server:
+  port: ${SERVER_PORT:8006}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+wallet:
+  base-url: ${WALLET_BASE_URL:http://wallet_service:8005}
+
+octopus:
+  instance-id: ${OCTOPUS_INSTANCE_ID:}
+  sprite-url-template: ${OCTOPUS_SPRITE_URL_TEMPLATE:https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png}
+  gacha:
+    cost-minor: ${OCTOPUS_GACHA_COST_MINOR:100}
+    max-template-id: ${OCTOPUS_GACHA_MAX_TEMPLATE_ID:6}
+  kafka:
+    gacha-events-topic: ${OCTOPUS_KAFKA_GACHA_TOPIC:octopus.gacha.events}
+
+logging:
+  level:
+    org.springframework: info
+    cersei.octopusservice: info
+  file:
+    name: logs/octopusservice.log
