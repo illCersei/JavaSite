@@ -2,10 +2,10 @@ spring:
   config:
     import: optional:file:.env.local[.properties]
   application:
-    name: pokemonService
+    name: octopusService
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/octopus_db
     username: ${DB_USER}
     password: ${DB_PASSWORD}
 
@@ -20,7 +20,7 @@ spring:
 
   mvc:
     servlet:
-      path: /api/v1/pokemon
+      path: /api/v1/octopus
 
   cache:
     type: redis
@@ -33,7 +33,7 @@ spring:
   kafka:
     bootstrap-servers: localhost:${SPRING_KAFKA_PORT}
     consumer:
-      group-id: pokemon-consumer-group
+      group-id: octopus-consumer-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       auto-offset-reset: earliest
@@ -62,19 +62,16 @@ server:
   port: 8006
 
 wallet:
-  kafka:
-    commands-topic: ${WALLET_KAFKA_COMMANDS_TOPIC:wallet.commands}
-    replies-topic: ${WALLET_KAFKA_REPLIES_TOPIC:wallet.commands.replies}
-    rpc-timeout-ms: ${WALLET_KAFKA_RPC_TIMEOUT_MS:15000}
+  base-url: ${WALLET_BASE_URL:http://localhost:8005}
 
-pokemon:
-  instance-id: ${POKEMON_INSTANCE_ID:}
-  sprite-url-template: ${POKEMON_SPRITE_URL_TEMPLATE:https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png}
+octopus:
+  instance-id: ${OCTOPUS_INSTANCE_ID:}
+  sprite-url-template: ${OCTOPUS_SPRITE_URL_TEMPLATE:http://localhost:8006/api/v1/octopus/images/octopus/%d.png}
   gacha:
-    cost-minor: ${POKEMON_GACHA_COST_MINOR:100}
-    max-pokemon-id: ${POKEMON_GACHA_MAX_ID:1025}
+    cost-minor: ${OCTOPUS_GACHA_COST_MINOR:100}
+    max-template-id: ${OCTOPUS_GACHA_MAX_TEMPLATE_ID:6}
   kafka:
-    gacha-events-topic: ${POKEMON_KAFKA_GACHA_TOPIC:pokemon.gacha.events}
+    gacha-events-topic: ${OCTOPUS_KAFKA_GACHA_TOPIC:octopus.gacha.events}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -82,6 +79,6 @@ jwt:
 logging:
   level:
     org.springframework: info
-    cersei.pokemonservice: info
+    cersei.octopusservice: info
   file:
-    name: logs/pokemonservice.log
+    name: logs/octopusservice.log
