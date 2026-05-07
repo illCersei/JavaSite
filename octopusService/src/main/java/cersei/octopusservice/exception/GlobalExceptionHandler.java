@@ -20,8 +20,22 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(WalletOperationException.class)
     public ResponseEntity<ApiErrorResponse> walletError(WalletOperationException ex) {
+        int status = ex.getHttpStatus() != null ? ex.getHttpStatus() : 502;
+        HttpStatus httpStatus = switch (status) {
+            case 402 -> HttpStatus.PAYMENT_REQUIRED; // insufficient funds
+            case 403 -> HttpStatus.FORBIDDEN;
+            case 408 -> HttpStatus.GATEWAY_TIMEOUT;
+            case 504 -> HttpStatus.GATEWAY_TIMEOUT;
+            default -> HttpStatus.BAD_GATEWAY;
+        };
         ApiError error = new ApiError("WALLET_ERROR", ex.getMessage(), null);
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(new ApiErrorResponse(List.of(error)));
+        return ResponseEntity.status(httpStatus).body(new ApiErrorResponse(List.of(error)));
+    }
+
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ResponseEntity<ApiErrorResponse> idemConflict(IdempotencyConflictException ex) {
+        ApiError error = new ApiError("IDEMPOTENCY_IN_PROGRESS", ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiErrorResponse(List.of(error)));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -27,7 +27,8 @@ public class WalletClient {
             }
             return response;
         } catch (RestClientResponseException ex) {
-            throw new WalletOperationException("Wallet debit failed: HTTP " + ex.getStatusCode().value());
+            int status = ex.getStatusCode().value();
+            throw new WalletOperationException(status, "Wallet debit failed: HTTP " + status);
         }
     }
 

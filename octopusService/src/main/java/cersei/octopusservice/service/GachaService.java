@@ -13,9 +13,12 @@ import java.util.UUID;
 @Service
 public class GachaService {
 
+    public static final String ACTION_GACHA_SPIN = "OCTOPUS_GACHA_SPIN";
+
     private final WalletClient walletClient;
     private final OctopusCatalogService octopusCatalogService;
     private final OctopusInventoryService octopusInventoryService;
+    private final IdempotencyService idempotencyService;
     private final long costMinor;
     private final int maxOctopusId;
 
@@ -23,18 +26,29 @@ public class GachaService {
             WalletClient walletClient,
             OctopusCatalogService octopusCatalogService,
             OctopusInventoryService octopusInventoryService,
+            IdempotencyService idempotencyService,
             @Value("${octopus.gacha.cost-minor}") long costMinor,
             @Value("${octopus.gacha.max-template-id}") int maxTemplateId
     ) {
         this.walletClient = walletClient;
         this.octopusCatalogService = octopusCatalogService;
         this.octopusInventoryService = octopusInventoryService;
+        this.idempotencyService = idempotencyService;
         this.costMinor = costMinor;
         this.maxOctopusId = maxTemplateId;
     }
 
-    public GachaSpinResponse spin(String accessToken, UUID userId) {
-        String spinId = UUID.randomUUID().toString();
+    public GachaSpinResponse spin(String accessToken, UUID userId, String idempotencyKey) {
+        return idempotencyService.run(
+                userId,
+                ACTION_GACHA_SPIN,
+                idempotencyKey,
+                GachaSpinResponse.class,
+                () -> doSpin(accessToken, userId, idempotencyKey)
+        );
+    }
+
+    private GachaSpinResponse doSpin(String accessToken, UUID userId, String spinId) {
         WalletOperationRequest debitRequest = new WalletOperationRequest(
                 costMinor,
                 "OCTOPUS_GACHA_SPIN",
