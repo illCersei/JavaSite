@@ -1,0 +1,31 @@
+package cersei.octopusservice.model;
+
+import cersei.octopusservice.model.utils.ItemSlot;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Table(name = "user_octopus_equipment")
+@Getter
+@Setter
+@NoArgsConstructor
+public class UserOctopusEquipment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_octopus_id", nullable = false)
+    private UserOctopus userOctopus;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "item_id", nullable = false)
+    private Item item;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ItemSlot slot;
+}

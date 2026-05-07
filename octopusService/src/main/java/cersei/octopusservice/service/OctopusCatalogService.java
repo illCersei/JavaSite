@@ -32,7 +32,7 @@ public class OctopusCatalogService {
         return new OctopusSummaryDto(
                 octopus.getId(),
                 octopus.getName(),
-                octopus.getElementType(),
+                octopus.getElementType() != null ? octopus.getElementType().name() : null,
                 octopus.getTier(),
                 spriteUrlTemplate.formatted(octopus.getId()),
                 octopus.getAttackStat(),
