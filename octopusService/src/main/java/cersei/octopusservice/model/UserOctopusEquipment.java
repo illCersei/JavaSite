@@ -7,7 +7,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "user_octopus_equipment")
+@Table(
+        name = "user_octopus_equipment",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_user_octopus_equipment_slot",
+                columnNames = {"user_octopus_id", "slot"}
+        )
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,11 +27,14 @@ public class UserOctopusEquipment {
     @JoinColumn(name = "user_octopus_id", nullable = false)
     private UserOctopus userOctopus;
 
+    /**
+     * Item template referenced from the user's stash (movement between octopuses = update this row).
+     */
     @ManyToOne(optional = false)
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 64)
     private ItemSlot slot;
 }

@@ -1,5 +1,6 @@
 package cersei.octopusservice.model;
 
+import cersei.octopusservice.model.utils.CombatRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,8 +24,21 @@ public class UserOctopus {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
+    @Column(name = "nickname")
+    private String nickname;
+
     @Column(nullable = false)
     private Integer level = 1;
+
+    @Column(name = "current_tier", nullable = false)
+    private Integer currentTier = 1;
+
+    @Column(nullable = false)
+    private Integer stars = 1;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 32)
+    private CombatRole role = CombatRole.BRUISER;
 
     @Column(nullable = false)
     private Integer exp = 0;
@@ -48,11 +62,14 @@ public class UserOctopus {
     @JoinColumn(name = "base_octopus", nullable = false)
     private Octopus octopus;
 
+    /**
+     * Skills this instance may pick into {@link UserOctopusSkillSlot} (spell pool unlocked for this octopus).
+     */
     @ManyToMany
     @JoinTable(
-            name = "user_octopus_perk",
+            name = "user_octopus_open_skill",
             joinColumns = @JoinColumn(name = "user_octopus_id"),
-            inverseJoinColumns = @JoinColumn(name = "perk_id")
+            inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
-    private Set<OctopusSkill> perks = new HashSet<>();
+    private Set<OctopusSkill> openSkills = new HashSet<>();
 }
