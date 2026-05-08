@@ -3,6 +3,7 @@ package cersei.octopusservice.service;
 import cersei.octopusservice.dto.InventoryLineDto;
 import cersei.octopusservice.dto.OctopusSummaryDto;
 import cersei.octopusservice.model.UserOctopusStash;
+import cersei.octopusservice.repository.UserOctopusRepository;
 import cersei.octopusservice.repository.UserOctopusStashRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ public class OctopusInventoryService {
 
     private final UserOctopusStashRepository userOctopusStashRepository;
     private final OctopusCatalogService octopusCatalogService;
+    private final UserOctopusRepository userOctopusRepository;
 
     @Transactional
     public int addOne(UUID userId, int octopusId) {
@@ -42,6 +44,8 @@ public class OctopusInventoryService {
 
     private InventoryLineDto toLine(UserOctopusStash stash) {
         OctopusSummaryDto base = octopusCatalogService.getById(stash.getOctopusId());
+        long instances = userOctopusRepository.countByUserIdAndOctopus_Id(stash.getUserId(), stash.getOctopusId());
+        int totalQty = stash.getQuantity() + Math.toIntExact(instances);
         OctopusSummaryDto withQty = new OctopusSummaryDto(
                 base.id(),
                 base.name(),
@@ -53,7 +57,7 @@ public class OctopusInventoryService {
                 base.armor(),
                 base.magicResist(),
                 base.speed(),
-                stash.getQuantity()
+                totalQty
         );
         return new InventoryLineDto(withQty);
     }
