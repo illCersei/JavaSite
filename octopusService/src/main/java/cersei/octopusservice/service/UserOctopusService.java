@@ -23,7 +23,7 @@ public class UserOctopusService {
     private final UserOctopusSkillSlotRepository skillSlotRepository;
 
     @Transactional(readOnly = true)
-    public List<UserOctopusDto> getUserOctopuses(UUID userId) {
+    public List<UserOctopusDto> getAllUserOctopuses(UUID userId) {
         return userOctopusRepository.findByUserIdOrderByIdAsc(userId)
                 .stream()
                 .map(this::toDto)
@@ -31,7 +31,7 @@ public class UserOctopusService {
     }
 
     @Transactional(readOnly = true)
-    public UserOctopusDto getUserOctopus(UUID userId, Integer userOctopusId) {
+    public UserOctopusDto getUserOctopusById(UUID userId, Integer userOctopusId) {
         UserOctopus userOctopus = userOctopusRepository.findByIdAndUserId(userOctopusId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("User octopus not found"));
 

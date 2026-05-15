@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/inventory")
+@RequestMapping("/collection")
 @RequiredArgsConstructor
 @Tag(name = "Inventory", description = "Инвентарь осьминогов по userId из JWT")
 public class InventoryController {
