@@ -1,4 +1,4 @@
-package cersei.octopusservice.service;
+package cersei.octopusservice.client;
 
 import cersei.octopusservice.dto.WalletOperationRequest;
 import cersei.octopusservice.dto.WalletOperationResponse;

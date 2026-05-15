@@ -1,5 +1,6 @@
 package cersei.octopusservice.service;
 
+import cersei.octopusservice.client.WalletClient;
 import cersei.octopusservice.dto.GachaSpinResponse;
 import cersei.octopusservice.dto.OctopusSummaryDto;
 import cersei.octopusservice.dto.WalletOperationRequest;
