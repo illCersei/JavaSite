@@ -6,6 +6,7 @@ import cersei.octopusservice.repository.UserOctopusEquipmentRepository;
 import cersei.octopusservice.repository.UserOctopusRepository;
 import cersei.octopusservice.repository.UserOctopusSkillSlotRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserOctopusService {
@@ -36,6 +38,38 @@ public class UserOctopusService {
                 .orElseThrow(() -> new IllegalArgumentException("User octopus not found"));
 
         return toDto(userOctopus);
+    }
+
+    @Transactional()
+    public UserOctopusAddedExpDto addExpToOctopus(UUID userId, Integer userOctopusId, int exp) {
+        UserOctopus userOctopus = userOctopusRepository.findByIdAndUserId(userOctopusId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("User octopus not found"));
+
+        Integer startLevel = userOctopus.getLevel();
+        Integer startExp = userOctopus.getExp();
+        int newExp = startExp + exp;
+        Integer newLevel = startLevel;
+
+        log.info("Octopus with id {} получил {} опыта", userOctopusId, exp);
+
+        while (newExp >= expToNextLevel(newLevel)) {
+            newExp -= expToNextLevel(newLevel);
+            newLevel++;
+        }
+
+        userOctopus.setLevel(newLevel);
+        userOctopus.setExp(newExp);
+        userOctopusRepository.save(userOctopus);
+
+        log.info("Октопус был {} стал - {}", startLevel, newLevel);
+
+        return new UserOctopusAddedExpDto(toDto(userOctopus),
+                startLevel,
+                newLevel);
+    }
+
+    private int expToNextLevel(int level) {
+        return 20 * (1 << (level - 1));
     }
 
     private UserOctopusDto toDto(UserOctopus userOctopus) {

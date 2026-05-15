@@ -1,20 +1,18 @@
 package cersei.octopusservice.controller;
 
+import cersei.octopusservice.dto.UserOctopusAddedExpDto;
 import cersei.octopusservice.dto.UserOctopusDto;
 import cersei.octopusservice.service.UserOctopusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/octopuses")
 @RequiredArgsConstructor
 public class UserOctopusController {
     private final UserOctopusService userOctopusService;
@@ -30,5 +28,13 @@ public class UserOctopusController {
                                           @PathVariable int id){
         UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
         return userOctopusService.getUserOctopusById(userId, id);
+    }
+
+    @PostMapping("{id}/exp")
+    UserOctopusAddedExpDto addExpToOctopus(@AuthenticationPrincipal Jwt jwt,
+                                           @PathVariable int id,
+                                           @RequestParam int exp){
+        UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
+        return userOctopusService.addExpToOctopus(userId, id, exp);
     }
 }
