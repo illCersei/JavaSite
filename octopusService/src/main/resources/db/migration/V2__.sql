@@ -57,13 +57,6 @@ CREATE TABLE user_octopus_equipment
     CONSTRAINT pk_user_octopus_equipment PRIMARY KEY (id)
 );
 
-CREATE TABLE user_octopus_perk
-(
-    perk_id         INTEGER NOT NULL,
-    user_octopus_id INTEGER NOT NULL,
-    CONSTRAINT pk_user_octopus_perk PRIMARY KEY (perk_id, user_octopus_id)
-);
-
 CREATE UNIQUE INDEX IX_pk_user_octopus_stash ON user_octopus_stash (user_id, octopus_id);
 
 ALTER TABLE octopus_skill_effect
@@ -77,9 +70,3 @@ ALTER TABLE user_octopus_equipment
 
 ALTER TABLE user_octopus
     ADD CONSTRAINT FK_USER_OCTOPUS_ON_BASE_OCTOPUS FOREIGN KEY (base_octopus) REFERENCES octopus (id);
-
-ALTER TABLE user_octopus_perk
-    ADD CONSTRAINT fk_useoctper_on_octopus_skill FOREIGN KEY (perk_id) REFERENCES octopus_skill (id);
-
-ALTER TABLE user_octopus_perk
-    ADD CONSTRAINT fk_useoctper_on_user_octopus FOREIGN KEY (user_octopus_id) REFERENCES user_octopus (id);
