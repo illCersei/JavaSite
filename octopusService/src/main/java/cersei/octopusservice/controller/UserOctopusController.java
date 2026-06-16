@@ -1,8 +1,10 @@
 package cersei.octopusservice.controller;
 
 import cersei.octopusservice.dto.UserOctopusAddedExpDto;
+import cersei.octopusservice.dto.UserOctopusAddedStatsDto;
 import cersei.octopusservice.dto.UserOctopusDto;
 import cersei.octopusservice.service.UserOctopusService;
+import cersei.octopusservice.utils.StatsForUpgrade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -30,11 +32,19 @@ public class UserOctopusController {
         return userOctopusService.getUserOctopusById(userId, id);
     }
 
-    @PostMapping("{id}/exp")
+    @PostMapping("{id}")
     UserOctopusAddedExpDto addExpToOctopus(@AuthenticationPrincipal Jwt jwt,
                                            @PathVariable int id,
                                            @RequestParam int exp){
         UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
         return userOctopusService.addExpToOctopus(userId, id, exp);
+    }
+
+    @PostMapping("{id}/add/{stat}")
+    UserOctopusAddedStatsDto addStatsToOctopus(@AuthenticationPrincipal Jwt jwt,
+                                               @PathVariable int id,
+                                               @PathVariable StatsForUpgrade stat){
+        UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
+        return userOctopusService.addStatsToOctopus(userId, id, stat);
     }
 }

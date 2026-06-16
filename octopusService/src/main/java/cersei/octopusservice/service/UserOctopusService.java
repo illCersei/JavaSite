@@ -1,10 +1,12 @@
 package cersei.octopusservice.service;
 
 import cersei.octopusservice.dto.*;
+import cersei.octopusservice.exception.OctopusNotFoundException;
 import cersei.octopusservice.model.*;
 import cersei.octopusservice.repository.UserOctopusEquipmentRepository;
 import cersei.octopusservice.repository.UserOctopusRepository;
 import cersei.octopusservice.repository.UserOctopusSkillSlotRepository;
+import cersei.octopusservice.utils.StatsForUpgrade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,36 +42,132 @@ public class UserOctopusService {
         return toDto(userOctopus);
     }
 
-    @Transactional()
-    public UserOctopusAddedExpDto addExpToOctopus(UUID userId, Integer userOctopusId, int exp) {
-        UserOctopus userOctopus = userOctopusRepository.findByIdAndUserId(userOctopusId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("User octopus not found"));
+    @Transactional
+    public UserOctopusAddedExpDto addExpToOctopus(
+            UUID userId,
+            Integer userOctopusId,
+            int exp
+    ) {
+        if (exp <= 0) {
+            throw new IllegalArgumentException("Количество опыта должно быть больше 0");
+        }
 
-        Integer startLevel = userOctopus.getLevel();
-        Integer startExp = userOctopus.getExp();
-        int newExp = startExp + exp;
-        Integer newLevel = startLevel;
+        UserOctopus userOctopus = userOctopusRepository
+                .findByIdAndUserId(userOctopusId, userId)
+                .orElseThrow(() -> new OctopusNotFoundException(userOctopusId));
+
+        int startLevel = userOctopus.getLevel();
+        int newLevel = startLevel;
+        int newExp = userOctopus.getExp() + exp;
+        int gainedLevels = 0;
 
         log.info("Octopus with id {} получил {} опыта", userOctopusId, exp);
 
         while (newExp >= expToNextLevel(newLevel)) {
             newExp -= expToNextLevel(newLevel);
             newLevel++;
+            gainedLevels++;
         }
 
         userOctopus.setLevel(newLevel);
         userOctopus.setExp(newExp);
-        userOctopusRepository.save(userOctopus);
 
-        log.info("Октопус был {} стал - {}", startLevel, newLevel);
+        if (gainedLevels > 0) {
+            userOctopus.setCurrentArmorStat(
+                    userOctopus.getCurrentArmorStat() + gainedLevels
+            );
 
-        return new UserOctopusAddedExpDto(toDto(userOctopus),
+            userOctopus.setCurrentSpeedStat(
+                    userOctopus.getCurrentSpeedStat() + gainedLevels
+            );
+
+            userOctopus.setCurrentAttackStat(
+                    userOctopus.getCurrentAttackStat() + gainedLevels
+            );
+
+            userOctopus.setCurrentMagicPowerStat(
+                    userOctopus.getCurrentMagicPowerStat() + gainedLevels
+            );
+
+            userOctopus.setCurrentMagicResistStat(
+                    userOctopus.getCurrentMagicResistStat() + gainedLevels
+            );
+
+            userOctopus.setCurrentFreeSkillPoints(
+                    userOctopus.getCurrentFreeSkillPoints() + gainedLevels * 2
+            );
+        }
+
+        log.info(
+                "Октопус {}: уровень {} -> {}, получено уровней {}, осталось опыта {}",
+                userOctopusId,
                 startLevel,
-                newLevel);
+                newLevel,
+                gainedLevels,
+                newExp
+        );
+
+        return new UserOctopusAddedExpDto(
+                toDto(userOctopus),
+                startLevel,
+                newLevel
+        );
     }
 
     private int expToNextLevel(int level) {
         return 20 * (1 << (level - 1));
+    }
+
+    @Transactional
+    public UserOctopusAddedStatsDto addStatsToOctopus(UUID userId, Integer userOctopusId, StatsForUpgrade stat) {
+        UserOctopus userOctopus = userOctopusRepository.findByIdAndUserId(userOctopusId, userId)
+                .orElseThrow(() -> new OctopusNotFoundException(userOctopusId));
+
+        Integer freeSkillPoints = userOctopus.getCurrentFreeSkillPoints();
+        log.info("Игрок {} октопус {} сейчас скиллпоинтов {}", userId, userOctopusId, freeSkillPoints);
+
+        //it cant be less than 0
+        if (freeSkillPoints <= 0) {
+            throw new IllegalArgumentException("Нет свободных скиллпоинтов");
+        }
+
+        int currentStat = switch (stat) {
+            case ARMOR -> {
+                int newValue = userOctopus.getCurrentArmorStat() + 1;
+                userOctopus.setCurrentArmorStat(newValue);
+                yield newValue;
+            }
+            case SPEED -> {
+                int newValue = userOctopus.getCurrentSpeedStat() + 1;
+                userOctopus.setCurrentSpeedStat(newValue);
+                yield newValue;
+            }
+            case ATTACK -> {
+                int newValue = userOctopus.getCurrentAttackStat() + 1;
+                userOctopus.setCurrentAttackStat(newValue);
+                yield newValue;
+            }
+            case MAGIC_POWER -> {
+                int newValue = userOctopus.getCurrentMagicPowerStat() + 1;
+                userOctopus.setCurrentMagicPowerStat(newValue);
+                yield newValue;
+            }
+            case MAGIC_RESIST -> {
+                int newValue = userOctopus.getCurrentMagicResistStat() + 1;
+                userOctopus.setCurrentMagicResistStat(newValue);
+                yield newValue;
+            }
+        };
+
+        userOctopus.setCurrentFreeSkillPoints(
+                userOctopus.getCurrentFreeSkillPoints() - 1
+        );
+
+        return new UserOctopusAddedStatsDto(
+                stat,
+                currentStat,
+                userOctopus.getCurrentFreeSkillPoints()
+        );
     }
 
     private UserOctopusDto toDto(UserOctopus userOctopus) {
