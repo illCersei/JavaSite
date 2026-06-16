@@ -52,7 +52,7 @@ spring:
 
 management:
   server:
-    port: 9001
+    port: 10001
   endpoints:
     web:
       exposure:

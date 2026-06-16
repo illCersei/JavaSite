@@ -46,7 +46,7 @@ spring:
 
 management:
   server:
-    port: 9004
+    port: 10004
   endpoints:
     web:
       exposure:

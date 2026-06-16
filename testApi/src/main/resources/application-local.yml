@@ -16,7 +16,7 @@ spring:
 
 management:
   server:
-    port: 9003
+    port: 10003
   endpoints:
     web:
       exposure:

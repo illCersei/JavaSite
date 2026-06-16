@@ -48,7 +48,7 @@ spring:
 
 management:
   server:
-    port: 9005
+    port: 10005
   endpoints:
     web:
       exposure:
