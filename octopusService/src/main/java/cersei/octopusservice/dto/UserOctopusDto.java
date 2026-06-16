@@ -19,6 +19,7 @@ public record UserOctopusDto(
         Integer currentArmorStat,
         Integer currentMagicResistStat,
         Integer currentSpeedStat,
+        Integer currentFreeSkillPoints,
         Set<SkillDto> openSkills,
         List<SkillSlotDto> skillSlots,
         List<EquipmentDto> equipment

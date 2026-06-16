@@ -93,6 +93,7 @@ public class UserOctopusService {
                 userOctopus.getCurrentArmorStat(),
                 userOctopus.getCurrentMagicResistStat(),
                 userOctopus.getCurrentSpeedStat(),
+                userOctopus.getCurrentFreeSkillPoints(),
                 toSkillDtos(userOctopus.getOpenSkills()),
                 skillSlots.stream().map(this::toSkillSlotDto).toList(),
                 equipment.stream().map(this::toEquipmentDto).toList()

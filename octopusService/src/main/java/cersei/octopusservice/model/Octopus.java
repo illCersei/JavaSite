@@ -46,4 +46,7 @@ public class Octopus {
 
     @Column(name = "speed_stat", nullable = false)
     private Integer speedStat;
+
+    @Column(name = "free_skill_points", nullable = false)
+    private Integer freeSkillPoints;
 }

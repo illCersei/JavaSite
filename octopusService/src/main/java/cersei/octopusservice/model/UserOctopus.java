@@ -58,6 +58,9 @@ public class UserOctopus {
     @Column(name = "speed_stat", nullable = false)
     private Integer currentSpeedStat;
 
+    @Column(name = "free_skill_points", nullable = false)
+    private Integer currentFreeSkillPoints;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "base_octopus", nullable = false)
     private Octopus octopus;
