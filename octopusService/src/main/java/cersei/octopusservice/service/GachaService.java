@@ -18,7 +18,7 @@ public class GachaService {
 
     private final WalletClient walletClient;
     private final OctopusCatalogService octopusCatalogService;
-    private final OctopusInventoryService octopusInventoryService;
+    private final UserOctopusStashService userOctopusStashService;
     private final IdempotencyService idempotencyService;
     private final long costMinor;
     private final int maxOctopusId;
@@ -26,14 +26,14 @@ public class GachaService {
     public GachaService(
             WalletClient walletClient,
             OctopusCatalogService octopusCatalogService,
-            OctopusInventoryService octopusInventoryService,
+            UserOctopusStashService userOctopusStashService,
             IdempotencyService idempotencyService,
             @Value("${octopus.gacha.cost-minor}") long costMinor,
             @Value("${octopus.gacha.max-template-id}") int maxTemplateId
     ) {
         this.walletClient = walletClient;
         this.octopusCatalogService = octopusCatalogService;
-        this.octopusInventoryService = octopusInventoryService;
+        this.userOctopusStashService = userOctopusStashService;
         this.idempotencyService = idempotencyService;
         this.costMinor = costMinor;
         this.maxOctopusId = maxTemplateId;
@@ -63,7 +63,7 @@ public class GachaService {
         int octopusId = ThreadLocalRandom.current().nextInt(1, maxOctopusId + 1);
         try {
             OctopusSummaryDto base = octopusCatalogService.getById(octopusId);
-            int ownedQty = octopusInventoryService.addOne(userId, octopusId);
+            int ownedQty = userOctopusStashService.addOne(userId, octopusId);
             OctopusSummaryDto octopus = new OctopusSummaryDto(
                     base.id(),
                     base.name(),

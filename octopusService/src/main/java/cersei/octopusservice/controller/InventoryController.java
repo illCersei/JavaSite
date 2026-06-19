@@ -1,7 +1,7 @@
 package cersei.octopusservice.controller;
 
 import cersei.octopusservice.dto.InventoryLineDto;
-import cersei.octopusservice.service.OctopusInventoryService;
+import cersei.octopusservice.service.UserOctopusStashService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,11 +19,11 @@ import java.util.UUID;
 @Tag(name = "Inventory", description = "Инвентарь осьминогов по userId из JWT")
 public class InventoryController {
 
-    private final OctopusInventoryService octopusInventoryService;
+    private final UserOctopusStashService userOctopusStashService;
 
     @GetMapping
     public List<InventoryLineDto> myInventory(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
-        return octopusInventoryService.listWithDetails(userId);
+        return userOctopusStashService.listWithDetails(userId);
     }
 }

@@ -33,7 +33,7 @@ class GachaServiceTest {
     private OctopusCatalogService octopusCatalogService;
 
     @Mock
-    private OctopusInventoryService octopusInventoryService;
+    private UserOctopusStashService userOctopusStashService;
 
     @Mock
     private IdempotencyService idempotencyService;
@@ -48,7 +48,7 @@ class GachaServiceTest {
         gachaService = new GachaService(
                 walletClient,
                 octopusCatalogService,
-                octopusInventoryService,
+                userOctopusStashService,
                 idempotencyService,
                 costMinor,
                 maxOctopusId
@@ -92,7 +92,7 @@ class GachaServiceTest {
         when(octopusCatalogService.getById(anyInt()))
                 .thenReturn(baseOctopus);
 
-        when(octopusInventoryService.addOne(eq(userId), anyInt()))
+        when(userOctopusStashService.addOne(eq(userId), anyInt()))
                 .thenReturn(3);
 
         GachaSpinResponse response = gachaService.spin(token, userId, idempotencyKey);
@@ -108,7 +108,7 @@ class GachaServiceTest {
 
         verify(walletClient).debit(eq(token), any(WalletOperationRequest.class));
         verify(octopusCatalogService).getById(anyInt());
-        verify(octopusInventoryService).addOne(eq(userId), anyInt());
+        verify(userOctopusStashService).addOne(eq(userId), anyInt());
         verify(walletClient, never()).creditQuietly(anyString(), any());
     }
 
@@ -144,7 +144,7 @@ class GachaServiceTest {
 
         verify(walletClient).debit(eq(token), any(WalletOperationRequest.class));
         verify(walletClient).creditQuietly(eq(token), any(WalletOperationRequest.class));
-        verify(octopusInventoryService, never()).addOne(any(), anyInt());
+        verify(userOctopusStashService, never()).addOne(any(), anyInt());
     }
 
     @Test
@@ -177,7 +177,7 @@ class GachaServiceTest {
         verify(walletClient).debit(eq(token), any(WalletOperationRequest.class));
         verify(walletClient, never()).creditQuietly(anyString(), any());
         verifyNoInteractions(octopusCatalogService);
-        verifyNoInteractions(octopusInventoryService);
+        verifyNoInteractions(userOctopusStashService);
     }
 
     @Test
@@ -210,6 +210,6 @@ class GachaServiceTest {
 
         verifyNoInteractions(walletClient);
         verifyNoInteractions(octopusCatalogService);
-        verifyNoInteractions(octopusInventoryService);
+        verifyNoInteractions(userOctopusStashService);
     }
 }

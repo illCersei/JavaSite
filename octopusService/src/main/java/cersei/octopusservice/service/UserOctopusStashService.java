@@ -17,7 +17,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OctopusInventoryService {
+public class UserOctopusStashService {
 
     private final UserOctopusStashRepository userOctopusStashRepository;
     private final OctopusCatalogService octopusCatalogService;
