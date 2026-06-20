@@ -101,5 +101,15 @@ public class CatalogServiceTest {
         assertEquals(OctopusNotFoundException.class, octopusNotFoundException.getClass());
         assertEquals("Octopus not found: " + notValidId, octopusNotFoundException.getMessage());
     }
+
+    @Test
+    void when_ToSummary_UsesQuantityAndSpriteTemplate() {
+        OctopusSummaryDto result = octopusCatalogService.toSummary(blue, 5);
+
+        assertEquals(5, result.quantity());
+        assertEquals("image-1.png", result.imageUrl());
+        assertEquals(blue.getAttackStat(), result.attack());
+        assertEquals(blue.getElementType().name(), result.elementType());
+    }
 }
 

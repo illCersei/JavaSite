@@ -88,7 +88,31 @@ class UserOctopusStashServiceTest {
 
     @Test
     void when_ListWithDetails_ReturnInventoryLinesWithTotalQuantity() {
-        //Возможно на это тоже нужно тесты сделать
-        //Но лучше просто перенести этот метод
+        when(stashRepository.findByUserIdOrderByOctopusIdAsc(userId))
+                .thenReturn(List.of(stash));
+
+        OctopusSummaryDto base = new OctopusSummaryDto(
+                1, "Blue Octopus", "STORM", 1, "image-1.png",
+                10, 20, 30, 40, 50, 1
+        );
+        when(octopusCatalogService.getById(1)).thenReturn(base);
+        when(userOctopusRepository.countByUserIdAndOctopus_Id(userId, 1))
+                .thenReturn(3L);
+
+        List<InventoryLineDto> result = inventoryService.listWithDetails(userId);
+
+        assertEquals(1, result.size());
+        assertEquals(5, result.get(0).octopus().quantity());
+        assertEquals("Blue Octopus", result.get(0).octopus().name());
+    }
+
+    @Test
+    void when_ListWithDetails_AndStashEmpty_ReturnsEmptyList() {
+        when(stashRepository.findByUserIdOrderByOctopusIdAsc(userId))
+                .thenReturn(List.of());
+
+        List<InventoryLineDto> result = inventoryService.listWithDetails(userId);
+
+        assertEquals(0, result.size());
     }
 }
