@@ -1,6 +1,7 @@
 package cersei.octopusservice.model;
 
 import cersei.octopusservice.model.utils.CombatRole;
+import cersei.octopusservice.utils.StatsForUpgrade;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -75,4 +76,22 @@ public class UserOctopus {
             inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
     private Set<OctopusSkill> openSkills = new HashSet<>();
+
+    public int upgradeStat(StatsForUpgrade stat) {
+        if (currentFreeSkillPoints <= 0) {
+            throw new IllegalArgumentException("Нет свободных скиллпоинтов");
+        }
+
+        int newValue = switch (stat) {
+            case ARMOR -> ++currentArmorStat;
+            case SPEED -> ++currentSpeedStat;
+            case ATTACK -> ++currentAttackStat;
+            case MAGIC_POWER -> ++currentMagicPowerStat;
+            case MAGIC_RESIST -> ++currentMagicResistStat;
+        };
+
+        currentFreeSkillPoints--;
+
+        return newValue;
+    }
 }
