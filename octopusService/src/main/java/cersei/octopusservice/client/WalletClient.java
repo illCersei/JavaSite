@@ -32,6 +32,24 @@ public class WalletClient {
         }
     }
 
+    public WalletOperationResponse credit(String accessToken, WalletOperationRequest request) {
+        try {
+            WalletOperationResponse response = walletRestClient.post()
+                    .uri("/private/me/game/credits")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .body(request)
+                    .retrieve()
+                    .body(WalletOperationResponse.class);
+            if (response == null) {
+                throw new WalletOperationException("Wallet credit returned empty response");
+            }
+            return response;
+        } catch (RestClientResponseException ex) {
+            int status = ex.getStatusCode().value();
+            throw new WalletOperationException(status, "Wallet credit failed: HTTP " + status);
+        }
+    }
+
     public void creditQuietly(String accessToken, WalletOperationRequest request) {
         try {
             walletRestClient.post()
