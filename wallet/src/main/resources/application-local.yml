@@ -48,7 +48,7 @@ spring:
 
 management:
   server:
-    port: 10005
+    port: ${WALLET_MONITORING_PORT:10005}
   endpoints:
     web:
       exposure:
@@ -96,4 +96,4 @@ wallet:
     publish-interval-ms: 2000
 
 server:
-  port: 8005
+  port: ${WALLET_SERVER_PORT:8005}

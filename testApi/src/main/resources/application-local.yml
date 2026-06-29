@@ -16,7 +16,7 @@ spring:
 
 management:
   server:
-    port: 10003
+    port: ${TESTAPI_MONITORING_PORT:10003}
   endpoints:
     web:
       exposure:
@@ -30,7 +30,7 @@ metrics:
   password: ${METRICS_PASSWORD}
 
 server:
-  port: 8003
+  port: ${TESTAPI_SERVER_PORT:8003}
 
 logging:
   level:

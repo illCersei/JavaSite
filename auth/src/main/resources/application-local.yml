@@ -52,7 +52,7 @@ spring:
 
 management:
   server:
-    port: 10001
+    port: ${AUTH_MONITORING_PORT:10001}
   endpoints:
     web:
       exposure:
@@ -78,4 +78,4 @@ logging:
     name: logs/auth.log
 
 server:
-  port: 8001
+  port: ${AUTH_SERVER_PORT:8001}

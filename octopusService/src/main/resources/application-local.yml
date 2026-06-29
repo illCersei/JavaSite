@@ -58,7 +58,7 @@ spring:
 
 management:
   server:
-    port: 10006
+    port: ${OCTOPUS_MONITORING_PORT:10006}
   endpoints:
     web:
       exposure:
@@ -72,17 +72,24 @@ metrics:
   password: ${METRICS_PASSWORD}
 
 server:
-  port: 8006
+  port: ${OCTOPUS_SERVER_PORT:8006}
 
 wallet:
-  base-url: ${WALLET_BASE_URL:http://localhost:8005}
+  base-url: http://localhost:${WALLET_SERVER_PORT:8005}
 
 octopus:
   instance-id: ${OCTOPUS_INSTANCE_ID:}
-  sprite-url-template: ${OCTOPUS_SPRITE_URL_TEMPLATE:http://localhost:8006/api/v1/octopus/images/octopus/%d.png}
+  sprite-url-template: ${OCTOPUS_SPRITE_URL_TEMPLATE:http://localhost:${OCTOPUS_SERVER_PORT:8006}/api/v1/octopus/images/octopus/%d.png}
   gacha:
     cost-minor: ${OCTOPUS_GACHA_COST_MINOR:100}
     max-template-id: ${OCTOPUS_GACHA_MAX_TEMPLATE_ID:6}
+  loot:
+    tier-weights:
+      1: ${OCTOPUS_LOOT_TIER_1_WEIGHT:70}
+      2: ${OCTOPUS_LOOT_TIER_2_WEIGHT:30}
+    coin-minor-by-tier:
+      1: ${OCTOPUS_LOOT_COIN_TIER_1:50}
+      2: ${OCTOPUS_LOOT_COIN_TIER_2:150}
   kafka:
     gacha-events-topic: ${OCTOPUS_KAFKA_GACHA_TOPIC:octopus.gacha.events}
 

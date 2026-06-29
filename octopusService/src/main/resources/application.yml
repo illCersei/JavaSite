@@ -76,6 +76,13 @@ octopus:
   gacha:
     cost-minor: ${OCTOPUS_GACHA_COST_MINOR:100}
     max-template-id: ${OCTOPUS_GACHA_MAX_TEMPLATE_ID:6}
+  loot:
+    tier-weights:
+      1: ${OCTOPUS_LOOT_TIER_1_WEIGHT:70}
+      2: ${OCTOPUS_LOOT_TIER_2_WEIGHT:30}
+    coin-minor-by-tier:
+      1: ${OCTOPUS_LOOT_COIN_TIER_1:50}
+      2: ${OCTOPUS_LOOT_COIN_TIER_2:150}
   kafka:
     gacha-events-topic: ${OCTOPUS_KAFKA_GACHA_TOPIC:octopus.gacha.events}
 
