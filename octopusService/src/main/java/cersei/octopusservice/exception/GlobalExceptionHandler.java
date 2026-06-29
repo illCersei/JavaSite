@@ -38,6 +38,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiErrorResponse(List.of(error)));
     }
 
+    @ExceptionHandler(ItemNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> itemNotFound(ItemNotFoundException ex) {
+        ApiError error = new ApiError("ITEM_NOT_FOUND", ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(List.of(error)));
+    }
+
+    @ExceptionHandler(InsufficientItemQuantityException.class)
+    public ResponseEntity<ApiErrorResponse> insufficientItems(InsufficientItemQuantityException ex) {
+        ApiError error = new ApiError("INSUFFICIENT_ITEM_QUANTITY", ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiErrorResponse(List.of(error)));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> badRequest(IllegalArgumentException ex) {
         ApiError error = new ApiError("BAD_REQUEST", ex.getMessage(), null);
