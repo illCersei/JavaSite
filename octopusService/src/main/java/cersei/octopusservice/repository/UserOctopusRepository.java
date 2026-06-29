@@ -12,13 +12,15 @@ public interface UserOctopusRepository extends JpaRepository<UserOctopus, Intege
 
     @EntityGraph(attributePaths = {
             "octopus",
-            "openSkills"
+            "openSkills",
+            "openSkills.effects"
     })
     Optional<UserOctopus> findByIdAndUserId(Integer id, UUID userId);
 
     @EntityGraph(attributePaths = {
             "octopus",
-            "openSkills"
+            "openSkills",
+            "openSkills.effects"
     })
     List<UserOctopus> findByUserIdOrderByIdAsc(UUID userId);
 

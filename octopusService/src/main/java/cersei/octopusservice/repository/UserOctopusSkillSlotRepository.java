@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface UserOctopusSkillSlotRepository extends JpaRepository<UserOctopusSkillSlot, Integer> {
 
-    @EntityGraph(attributePaths = "skill")
+    @EntityGraph(attributePaths = {"skill", "skill.effects"})
     List<UserOctopusSkillSlot> findByUserOctopus_IdOrderBySlotIndexAsc(Integer userOctopusId);
 }

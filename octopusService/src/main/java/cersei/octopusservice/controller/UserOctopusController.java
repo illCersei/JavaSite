@@ -1,5 +1,6 @@
 package cersei.octopusservice.controller;
 
+import cersei.octopusservice.dto.CombatSnapshotDto;
 import cersei.octopusservice.dto.UserOctopusAddedExpDto;
 import cersei.octopusservice.dto.UserOctopusAddedStatsDto;
 import cersei.octopusservice.dto.UserOctopusDto;
@@ -32,6 +33,15 @@ public class UserOctopusController {
                                           @PathVariable int id){
         UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
         return userOctopusQueryService.getUserOctopusById(userId, id);
+    }
+
+    @GetMapping("/get/{id}/combat-snapshot")
+    CombatSnapshotDto getCombatSnapshot(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable int id
+    ) {
+        UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
+        return userOctopusQueryService.getCombatSnapshot(userId, id);
     }
 
     @PostMapping("{id}")

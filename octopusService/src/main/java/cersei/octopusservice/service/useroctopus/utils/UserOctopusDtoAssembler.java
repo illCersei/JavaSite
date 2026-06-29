@@ -4,6 +4,7 @@ import cersei.octopusservice.dto.*;
 import cersei.octopusservice.model.*;
 import cersei.octopusservice.repository.UserOctopusEquipmentRepository;
 import cersei.octopusservice.repository.UserOctopusSkillSlotRepository;
+import cersei.octopusservice.service.useritem.ItemDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,8 @@ public class UserOctopusDtoAssembler {
 
     private final UserOctopusEquipmentRepository equipmentRepository;
     private final UserOctopusSkillSlotRepository skillSlotRepository;
+    private final ItemDtoMapper itemDtoMapper;
+    private final SkillDtoMapper skillDtoMapper;
 
     public UserOctopusDto toDto(UserOctopus userOctopus) {
         List<UserOctopusEquipment> equipment =
@@ -56,7 +59,7 @@ public class UserOctopusDtoAssembler {
 
     private Set<SkillDto> toSkillDtos(Set<OctopusSkill> skills) {
         return skills.stream()
-                .map(this::toSkillDto)
+                .map(skillDtoMapper::toDto)
                 .collect(Collectors.toSet());
     }
 
@@ -64,18 +67,7 @@ public class UserOctopusDtoAssembler {
         return new SkillSlotDto(
                 slot.getId(),
                 slot.getSlotIndex(),
-                slot.getSkill() == null ? null : toSkillDto(slot.getSkill())
-        );
-    }
-
-    private SkillDto toSkillDto(OctopusSkill skill) {
-        return new SkillDto(
-                skill.getId(),
-                skill.getName(),
-                skill.getDescription(),
-                skill.getElementType().name(),
-                skill.getCooldownMs(),
-                skill.getManaCost()
+                skillDtoMapper.toDto(slot.getSkill())
         );
     }
 
@@ -88,17 +80,6 @@ public class UserOctopusDtoAssembler {
     }
 
     private ItemDto toItemDto(Item item) {
-        return new ItemDto(
-                item.getId(),
-                item.getName(),
-                item.getDescription(),
-                item.getSlot(),
-                item.getTier(),
-                item.getAttackStat(),
-                item.getMagicPowerStat(),
-                item.getArmorStat(),
-                item.getMagicResistStat(),
-                item.getSpeedStat()
-        );
+        return itemDtoMapper.toDto(item);
     }
 }

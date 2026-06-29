@@ -11,11 +11,12 @@ import cersei.octopusservice.model.utils.ElementType;
 import cersei.octopusservice.model.utils.ItemSlot;
 import cersei.octopusservice.repository.UserOctopusEquipmentRepository;
 import cersei.octopusservice.repository.UserOctopusSkillSlotRepository;
+import cersei.octopusservice.service.useritem.ItemDtoMapper;
+import cersei.octopusservice.service.useroctopus.utils.SkillDtoMapper;
 import cersei.octopusservice.service.useroctopus.utils.UserOctopusDtoAssembler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -36,13 +37,21 @@ class UserOctopusDtoAssemblerTest {
     @Mock
     private UserOctopusSkillSlotRepository skillSlotRepository;
 
-    @InjectMocks
+    private final ItemDtoMapper itemDtoMapper = new ItemDtoMapper();
+
     private UserOctopusDtoAssembler assembler;
 
     private UserOctopus userOctopus;
 
     @BeforeEach
     void setUp() {
+        assembler = new UserOctopusDtoAssembler(
+                equipmentRepository,
+                skillSlotRepository,
+                itemDtoMapper,
+                new SkillDtoMapper()
+        );
+
         Octopus baseOctopus = new Octopus();
         baseOctopus.setId(10);
 
