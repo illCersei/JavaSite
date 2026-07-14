@@ -6,10 +6,10 @@ import cersei.octopusservice.dto.CombatStatsDto;
 import cersei.octopusservice.dto.CombatTeamSnapshotDto;
 import cersei.octopusservice.exception.OctopusNotFoundException;
 import cersei.octopusservice.model.Octopus;
-import cersei.octopusservice.model.UserBattleTeamSlot;
+import cersei.octopusservice.model.UserBattleTeam;
 import cersei.octopusservice.model.UserOctopus;
 import cersei.octopusservice.model.utils.CombatRole;
-import cersei.octopusservice.repository.UserBattleTeamSlotRepository;
+import cersei.octopusservice.repository.UserBattleTeamRepository;
 import cersei.octopusservice.repository.UserOctopusRepository;
 import cersei.octopusservice.service.UserBattleTeamService;
 import cersei.octopusservice.service.useroctopus.UserOctopusQueryService;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 class UserBattleTeamServiceTest {
 
     @Mock
-    private UserBattleTeamSlotRepository teamSlotRepository;
+    private UserBattleTeamRepository teamRepository;
 
     @Mock
     private UserOctopusRepository userOctopusRepository;
@@ -48,30 +48,25 @@ class UserBattleTeamServiceTest {
     @BeforeEach
     void setUp() {
         userBattleTeamService = new UserBattleTeamService(
-                teamSlotRepository,
+                teamRepository,
                 userOctopusRepository,
                 userOctopusQueryService
         );
     }
 
     @Test
-    void when_SaveTeam_PersistsThreeSlots() {
+    void when_SaveTeam_PersistsTeamArray() {
         List<Integer> ids = List.of(1, 2, 3);
         when(userOctopusRepository.findByIdAndUserId(1, userId)).thenReturn(Optional.of(createOctopus(1)));
         when(userOctopusRepository.findByIdAndUserId(2, userId)).thenReturn(Optional.of(createOctopus(2)));
         when(userOctopusRepository.findByIdAndUserId(3, userId)).thenReturn(Optional.of(createOctopus(3)));
-        when(teamSlotRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(teamSlotRepository.findByUserIdOrderBySlotIndexAsc(userId)).thenReturn(List.of(
-                createSlot(0, 1),
-                createSlot(1, 2),
-                createSlot(2, 3)
-        ));
+        when(teamRepository.findById(userId)).thenReturn(Optional.empty(), Optional.of(createTeam(ids)));
+        when(teamRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         BattleTeamDto team = userBattleTeamService.saveTeam(userId, ids);
 
         assertEquals(3, team.slots().size());
-        verify(teamSlotRepository).deleteByUserId(userId);
-        verify(teamSlotRepository, times(3)).save(any(UserBattleTeamSlot.class));
+        verify(teamRepository).save(any(UserBattleTeam.class));
     }
 
     @Test
@@ -86,11 +81,7 @@ class UserBattleTeamServiceTest {
 
     @Test
     void when_GetTeamCombatSnapshots_ReturnsThreeFighters() {
-        when(teamSlotRepository.findByUserIdOrderBySlotIndexAsc(userId)).thenReturn(List.of(
-                createSlot(0, 1),
-                createSlot(1, 2),
-                createSlot(2, 3)
-        ));
+        when(teamRepository.findById(userId)).thenReturn(Optional.of(createTeam(List.of(1, 2, 3))));
 
         CombatSnapshotDto snapshot = new CombatSnapshotDto(
                 1, 10, "Ace", 5, 1, 1, CombatRole.BRUISER,
@@ -107,7 +98,7 @@ class UserBattleTeamServiceTest {
 
     @Test
     void when_GetTeamCombatSnapshots_IncompleteTeam_Throws() {
-        when(teamSlotRepository.findByUserIdOrderBySlotIndexAsc(userId)).thenReturn(List.of(createSlot(0, 1)));
+        when(teamRepository.findById(userId)).thenReturn(Optional.of(createTeam(List.of(1))));
 
         assertThrows(
                 IllegalArgumentException.class,
@@ -133,10 +124,10 @@ class UserBattleTeamServiceTest {
         return octopus;
     }
 
-    private UserBattleTeamSlot createSlot(int slotIndex, int octopusId) {
-        UserBattleTeamSlot slot = new UserBattleTeamSlot();
-        slot.setSlotIndex(slotIndex);
-        slot.setUserOctopus(createOctopus(octopusId));
-        return slot;
+    private UserBattleTeam createTeam(List<Integer> ids) {
+        UserBattleTeam team = new UserBattleTeam();
+        team.setUserId(userId);
+        team.setUserOctopusIds(ids);
+        return team;
     }
 }
