@@ -1,0 +1,6 @@
+@FightService.Application_HostAddress = http://localhost:5041
+
+GET {{FightService.Application_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
