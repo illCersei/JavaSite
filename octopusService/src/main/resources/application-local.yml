@@ -92,6 +92,8 @@ octopus:
       2: ${OCTOPUS_LOOT_COIN_TIER_2:150}
   kafka:
     gacha-events-topic: ${OCTOPUS_KAFKA_GACHA_TOPIC:octopus.gacha.events}
+  fight:
+    base-url: http://localhost:22822
 
 jwt:
   secret: ${JWT_SECRET}

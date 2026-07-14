@@ -50,6 +50,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiErrorResponse(List.of(error)));
     }
 
+    @ExceptionHandler(DungeonNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> dungeonNotFound(DungeonNotFoundException ex) {
+        ApiError error = new ApiError("DUNGEON_NOT_FOUND", ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(List.of(error)));
+    }
+
+    @ExceptionHandler(FightServiceException.class)
+    public ResponseEntity<ApiErrorResponse> fightServiceError(FightServiceException ex) {
+        int status = ex.getHttpStatus() != null ? ex.getHttpStatus() : 502;
+        HttpStatus httpStatus = HttpStatus.resolve(status);
+        if (httpStatus == null) {
+            httpStatus = HttpStatus.BAD_GATEWAY;
+        }
+        ApiError error = new ApiError("FIGHT_SERVICE_ERROR", ex.getMessage(), null);
+        return ResponseEntity.status(httpStatus).body(new ApiErrorResponse(List.of(error)));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> badRequest(IllegalArgumentException ex) {
         ApiError error = new ApiError("BAD_REQUEST", ex.getMessage(), null);
