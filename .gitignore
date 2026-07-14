@@ -59,7 +59,6 @@ docker-compose.metrics.twitch.yml
 /octopusService/src/main/resources/static/images/octopus/6.png
 /docs/ARCHITECTURE_ROADMAP.md
 /sql/bootstrap_octopus_test_data_for_user.sql
-/octopusService/src/main/java/cersei/octopusservice/model/utils/CombatRole.java
 /docs/FRONTEND_POKEMON_TO_OCTOPUS.md
 /sql/grant_all_octopus_meta_to_user.sql
 /docs/octopus_db_seeding_best_practices.md
