@@ -81,3 +81,4 @@ docker-compose.metrics.twitch.yml
 /sql/seed_octopus_skills.sql
 /docs/WALLET_AND_POKEMON_TECHNICAL_OVERVIEW.md
 /octopusService/src/main/resources/static/images/items/Архив ZIP - WinRAR.zip
+/fightServiceTemp/
