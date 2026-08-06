@@ -34,7 +34,7 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT:6379}
 
   kafka:
-    bootstrap-servers: kafka_container:9092
+    bootstrap-servers: kafka-container:9092
     consumer:
       group-id: octopus-consumer-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -68,7 +68,7 @@ jwt:
   secret: ${JWT_SECRET}
 
 wallet:
-  base-url: ${WALLET_BASE_URL:http://wallet_service:8005}
+  base-url: ${WALLET_BASE_URL:http://wallet-service:8005}
 
 octopus:
   instance-id: ${OCTOPUS_INSTANCE_ID:}
@@ -83,6 +83,7 @@ octopus:
     coin-minor-by-tier:
       1: ${OCTOPUS_LOOT_COIN_TIER_1:50}
       2: ${OCTOPUS_LOOT_COIN_TIER_2:150}
+    failed-run-retention-bps: ${OCTOPUS_DUNGEON_FAILED_RETENTION_BPS:5000}
   kafka:
     gacha-events-topic: ${OCTOPUS_KAFKA_GACHA_TOPIC:octopus.gacha.events}
   fight:

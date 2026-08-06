@@ -4,13 +4,9 @@ import cersei.octopusservice.model.DungeonRun;
 import cersei.octopusservice.model.DungeonRunRoom;
 import cersei.octopusservice.model.DungeonRunRoomLink;
 import cersei.octopusservice.model.DungeonTemplate;
-import cersei.octopusservice.model.Item;
 import cersei.octopusservice.model.utils.DungeonRoomStatus;
 import cersei.octopusservice.model.utils.DungeonRoomType;
 import cersei.octopusservice.service.enemy.EnemyCatalogService;
-import cersei.octopusservice.service.loot.LootCoinCalculator;
-import cersei.octopusservice.service.loot.LootTierRoller;
-import cersei.octopusservice.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,15 +17,21 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+// Decides room layout, type and (for combat rooms) which enemy - nothing about loot. Loot is
+// rolled lazily by DungeonLootResolver once a room is actually resolved (see DungeonService),
+// so nothing here spoils a reward before the player has earned it.
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class DungeonMapGenerator {
 
+    private static final int CHEST_WEIGHT = 30;
+    private static final int ELITE_COMBAT_WEIGHT = 15;
+    private static final int EVENT_WEIGHT = 10;
+    private static final int SHOP_WEIGHT = 5;
+    // Remainder of the 0..99 roll (40%) falls through to BATTLE.
+
     private final EnemyCatalogService enemyCatalogService;
-    private final LootTierRoller lootTierRoller;
-    private final LootCoinCalculator lootCoinCalculator;
-    private final ItemRepository itemRepository;
 
     public GeneratedDungeonMap generate(DungeonRun run, DungeonTemplate template) {
         Random random = new Random(run.getRngSeed());
@@ -76,34 +78,35 @@ public class DungeonMapGenerator {
         if (bossLayer) {
             room.setRoomType(DungeonRoomType.BOSS);
             room.setEnemyTemplateId(enemyCatalogService.pickBossForTier(template.getTier()));
-            room.setLootCoinsMinor(lootCoinCalculator.coinsForTier(template.getTier()) * 2);
-            rollItemLoot(room, template.getTier());
             return room;
         }
 
-        boolean treasure = random.nextInt(100) < 35;
-        if (treasure) {
-            room.setRoomType(DungeonRoomType.CHEST);
-            room.setLootCoinsMinor(lootCoinCalculator.coinsForTier(template.getTier()));
-            rollItemLoot(room, template.getTier());
-        } else {
-            room.setRoomType(DungeonRoomType.BATTLE);
+        DungeonRoomType roomType = rollRoomType(random);
+        room.setRoomType(roomType);
+        if (roomType == DungeonRoomType.BATTLE || roomType == DungeonRoomType.ELITE_COMBAT) {
             room.setEnemyTemplateId(enemyCatalogService.pickMobForTier(template.getTier(), random));
-            room.setLootCoinsMinor(lootCoinCalculator.coinsForTier(template.getTier()));
-            rollItemLoot(room, template.getTier());
         }
         return room;
     }
 
-    private void rollItemLoot(DungeonRunRoom room, int tier) {
-        int rolledTier = lootTierRoller.rollTier();
-        List<Item> pool = itemRepository.findByTierOrderByIdAsc(rolledTier);
-        if (pool.isEmpty()) {
-            return;
+    private DungeonRoomType rollRoomType(Random random) {
+        int roll = random.nextInt(100);
+        if (roll < CHEST_WEIGHT) {
+            return DungeonRoomType.CHEST;
         }
-        Item item = pool.get(new Random(room.getDungeonRun().getRngSeed() + room.getLayerIndex()).nextInt(pool.size()));
-        room.setLootItem(item);
-        room.setLootQuantity(1);
+        roll -= CHEST_WEIGHT;
+        if (roll < ELITE_COMBAT_WEIGHT) {
+            return DungeonRoomType.ELITE_COMBAT;
+        }
+        roll -= ELITE_COMBAT_WEIGHT;
+        if (roll < EVENT_WEIGHT) {
+            return DungeonRoomType.EVENT;
+        }
+        roll -= EVENT_WEIGHT;
+        if (roll < SHOP_WEIGHT) {
+            return DungeonRoomType.SHOP;
+        }
+        return DungeonRoomType.BATTLE;
     }
 
     private List<DungeonRunRoomLink> connectLayers(

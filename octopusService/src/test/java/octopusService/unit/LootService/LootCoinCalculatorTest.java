@@ -14,7 +14,8 @@ class LootCoinCalculatorTest {
     void when_CoinsForTier_ReturnsConfiguredAmount() {
         LootTierWeightProperties properties = new LootTierWeightProperties(
                 Map.of(1, 70, 2, 30),
-                Map.of(1, 50L, 2, 150L)
+                Map.of(1, 50L, 2, 150L),
+                null
         );
         LootCoinCalculator calculator = new LootCoinCalculator(properties);
 

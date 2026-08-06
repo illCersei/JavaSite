@@ -1,8 +1,7 @@
 package cersei.octopusservice.client;
 
-import cersei.octopusservice.dto.fight.FightResultResponse;
 import cersei.octopusservice.dto.fight.FightStartRequest;
-import cersei.octopusservice.dto.fight.FightStartResponse;
+import cersei.octopusservice.dto.fight.FightStateDto;
 import cersei.octopusservice.exception.FightServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,7 @@ public class FightServiceClient {
 
     private final RestClient fightRestClient;
 
-    public FightStartResponse startFight(String accessToken, FightStartRequest request) {
+    public FightStateDto startFight(String accessToken, FightStartRequest request) {
         log.info(
                 "FightService start battleId={} source={} dungeonRunId={} roomId={}",
                 request.battleId(),
@@ -26,12 +25,12 @@ public class FightServiceClient {
                 request.context().dungeonRoomId()
         );
         try {
-            FightStartResponse response = fightRestClient.post()
+            FightStateDto response = fightRestClient.post()
                     .uri("/fight/start")
                     .header("Authorization", "Bearer " + accessToken)
                     .body(request)
                     .retrieve()
-                    .body(FightStartResponse.class);
+                    .body(FightStateDto.class);
             if (response == null) {
                 throw new FightServiceException("Fight start returned empty response");
             }
@@ -41,20 +40,23 @@ public class FightServiceClient {
         }
     }
 
-    public FightResultResponse getFightResult(String accessToken, String battleId) {
-        log.info("FightService get result battleId={}", battleId);
+    // Java only reads state to confirm the final result (finished/result) once a battle is
+    // over - the live per-turn /fight/{battleId}/action loop is called directly by the
+    // frontend against fightServiceUrl, not proxied through here.
+    public FightStateDto getState(String accessToken, String battleId) {
+        log.info("FightService get state battleId={}", battleId);
         try {
-            FightResultResponse response = fightRestClient.get()
-                    .uri("/fight/result/{battleId}", battleId)
+            FightStateDto response = fightRestClient.get()
+                    .uri("/fight/{battleId}/state", battleId)
                     .header("Authorization", "Bearer " + accessToken)
                     .retrieve()
-                    .body(FightResultResponse.class);
+                    .body(FightStateDto.class);
             if (response == null) {
-                throw new FightServiceException("Fight result returned empty response");
+                throw new FightServiceException("Fight state returned empty response");
             }
             return response;
         } catch (RestClientResponseException ex) {
-            throw new FightServiceException(ex.getStatusCode().value(), "Fight result failed: HTTP " + ex.getStatusCode().value());
+            throw new FightServiceException(ex.getStatusCode().value(), "Fight state failed: HTTP " + ex.getStatusCode().value());
         }
     }
 }

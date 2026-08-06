@@ -19,6 +19,8 @@ import cersei.octopusservice.service.IdempotencyService;
 import cersei.octopusservice.service.UserBattleTeamService;
 import cersei.octopusservice.service.UserItemService;
 import cersei.octopusservice.service.enemy.EnemyCatalogService;
+import cersei.octopusservice.service.loot.DungeonLootResolver;
+import cersei.octopusservice.service.loot.LootTierWeightProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +39,8 @@ public class DungeonService {
 
     public static final String ACTION_DUNGEON_EXTRACT = "OCTOPUS_DUNGEON_EXTRACT";
     private static final int MAX_TURNS = 50;
+    private static final double ELITE_STAT_MULTIPLIER = 1.5;
+    private static final double EVENT_COIN_FRACTION = 0.5;
 
     private final DungeonTemplateRepository templateRepository;
     private final DungeonRunRepository runRepository;
@@ -44,6 +48,8 @@ public class DungeonService {
     private final DungeonRunRoomLinkRepository linkRepository;
     private final DungeonRunLootRepository lootRepository;
     private final DungeonMapGenerator mapGenerator;
+    private final DungeonLootResolver lootResolver;
+    private final LootTierWeightProperties lootProperties;
     private final EnemyCatalogService enemyCatalogService;
     private final UserBattleTeamService userBattleTeamService;
     private final FightCombatantMapper fightCombatantMapper;
@@ -121,14 +127,22 @@ public class DungeonService {
         run.setUpdatedAt(Instant.now());
         runRepository.save(run);
 
-        if (room.getRoomType() == DungeonRoomType.CHEST) {
+        int dungeonTier = run.getDungeonTemplate().getTier();
+        DungeonRoomType roomType = room.getRoomType();
+        if (roomType == DungeonRoomType.CHEST || roomType == DungeonRoomType.SHOP) {
+            // SHOP is a placeholder for v1: it pays out exactly like a chest. A real
+            // buy/spend mechanic is future work - this just reserves the room type.
+            lootResolver.rollForRoom(room, dungeonTier);
             collectRoomLoot(run, room);
-            room.setRoomStatus(DungeonRoomStatus.CLEARED);
-            roomRepository.save(room);
-            unlockLinkedRooms(runId, room);
-            log.info("Dungeon chest cleared runId={} roomId={}", runId, roomId);
+            clearRoom(runId, room);
+            log.info("Dungeon {} room cleared runId={} roomId={}", roomType, runId, roomId);
+        } else if (roomType == DungeonRoomType.EVENT) {
+            lootResolver.rollCoinsOnly(room, dungeonTier, EVENT_COIN_FRACTION);
+            collectRoomLoot(run, room);
+            clearRoom(runId, room);
+            log.info("Dungeon event room resolved runId={} roomId={}", runId, roomId);
         } else {
-            log.info("Dungeon room entered runId={} roomId={} type={}", runId, roomId, room.getRoomType());
+            log.info("Dungeon room entered runId={} roomId={} type={}", runId, roomId, roomType);
         }
 
         return buildState(run);
@@ -140,7 +154,9 @@ public class DungeonService {
         ensureActive(run);
 
         DungeonRunRoom room = requireRoom(runId, roomId);
-        if (room.getRoomType() != DungeonRoomType.BATTLE && room.getRoomType() != DungeonRoomType.BOSS) {
+        if (room.getRoomType() != DungeonRoomType.BATTLE
+                && room.getRoomType() != DungeonRoomType.ELITE_COMBAT
+                && room.getRoomType() != DungeonRoomType.BOSS) {
             throw new IllegalArgumentException("В этой комнате нельзя начать бой: type=" + room.getRoomType());
         }
         if (!Objects.equals(run.getCurrentRoomId(), roomId)) {
@@ -163,6 +179,7 @@ public class DungeonService {
 
         CombatTeamSnapshotDto team = userBattleTeamService.getTeamCombatSnapshots(userId);
         EnemyTemplateDto enemy = enemyCatalogService.requireById(room.getEnemyTemplateId());
+        double statMultiplier = room.getRoomType() == DungeonRoomType.ELITE_COMBAT ? ELITE_STAT_MULTIPLIER : 1.0;
 
         String battleId = UUID.randomUUID().toString();
         FightStartRequest request = new FightStartRequest(
@@ -177,7 +194,7 @@ public class DungeonService {
                 new FightSquadDto(team.fighters().stream()
                         .map(fightCombatantMapper::fromPlayerSnapshot)
                         .toList()),
-                new FightSquadDto(List.of(fightCombatantMapper.fromEnemy(enemy))),
+                new FightSquadDto(List.of(fightCombatantMapper.fromEnemy(enemy, statMultiplier))),
                 new FightRulesDto(MAX_TURNS, true)
         );
 
@@ -203,18 +220,22 @@ public class DungeonService {
             throw new IllegalArgumentException("battleId не совпадает с текущим боем");
         }
 
-        FightResultResponse result = fightServiceClient.getFightResult(accessToken, battleId);
-        if (!result.finished()) {
+        FightStateDto state = fightServiceClient.getState(accessToken, battleId);
+        if (!state.finished()) {
             log.info("Dungeon fight still in progress runId={} battleId={}", runId, battleId);
             return buildState(run);
         }
 
         DungeonRunRoom room = requireRoom(runId, run.getCurrentRoomId());
-        if (result.result() == BattleResult.WIN) {
+        if (BattleResult.valueOf(state.result()) == BattleResult.WIN) {
+            int dungeonTier = run.getDungeonTemplate().getTier();
+            if (room.getRoomType() == DungeonRoomType.ELITE_COMBAT) {
+                lootResolver.rollForEliteRoom(room, dungeonTier);
+            } else {
+                lootResolver.rollForRoom(room, dungeonTier);
+            }
             collectRoomLoot(run, room);
-            room.setRoomStatus(DungeonRoomStatus.CLEARED);
-            roomRepository.save(room);
-            unlockLinkedRooms(runId, room);
+            clearRoom(runId, room);
             run.setCurrentFightId(null);
             run.setUpdatedAt(Instant.now());
             runRepository.save(run);
@@ -232,6 +253,11 @@ public class DungeonService {
 
     @Transactional
     public DungeonRunStateDto extract(String accessToken, UUID userId, UUID runId, String idempotencyKey) {
+        DungeonRun run = requireRun(userId, runId);
+        if (run.getCurrentFightId() != null && !run.getCurrentFightId().isBlank()) {
+            throw new IllegalArgumentException("Нельзя извлечься во время боя");
+        }
+
         return idempotencyService.run(
                 userId,
                 ACTION_DUNGEON_EXTRACT,
@@ -247,9 +273,12 @@ public class DungeonService {
             return buildState(run);
         }
 
+        // Voluntary extract from an active run keeps the full haul; a run that ended FAILED
+        // only pays out a fraction (docs/OCTOPUS_MINIGAME_PLAN.md §14.4 risk/reward model).
+        boolean fullPayout = run.getStatus() == DungeonRunStatus.ACTIVE;
         List<DungeonRunLoot> pending = lootRepository.findByDungeonRun_Id(runId);
         for (DungeonRunLoot entry : pending) {
-            grantPendingLoot(accessToken, userId, runId, entry);
+            grantPendingLoot(accessToken, userId, runId, entry, fullPayout);
         }
         lootRepository.deleteAll(pending);
 
@@ -258,18 +287,24 @@ public class DungeonService {
         run.setUpdatedAt(Instant.now());
         runRepository.save(run);
 
-        log.info("Dungeon extracted runId={} userId={} lootEntries={}", runId, userId, pending.size());
+        log.info(
+                "Dungeon extracted runId={} userId={} lootEntries={} fullPayout={}",
+                runId, userId, pending.size(), fullPayout
+        );
         return buildState(run);
     }
 
-    private void grantPendingLoot(String accessToken, UUID userId, UUID runId, DungeonRunLoot entry) {
+    private void grantPendingLoot(String accessToken, UUID userId, UUID runId, DungeonRunLoot entry, boolean fullPayout) {
         String grantId = runId + ":" + entry.getId();
-        if (entry.getItem() != null && entry.getQuantity() > 0) {
-            userItemService.addItems(userId, entry.getItem().getId(), entry.getQuantity());
+        int quantity = fullPayout ? entry.getQuantity() : lootProperties.applyFailedRunRetention(entry.getQuantity());
+        long coinsMinor = fullPayout ? entry.getCoinsMinor() : lootProperties.applyFailedRunRetention(entry.getCoinsMinor());
+
+        if (entry.getItem() != null && quantity > 0) {
+            userItemService.addItems(userId, entry.getItem().getId(), quantity);
         }
-        if (entry.getCoinsMinor() > 0) {
+        if (coinsMinor > 0) {
             WalletOperationRequest creditRequest = new WalletOperationRequest(
-                    entry.getCoinsMinor(),
+                    coinsMinor,
                     "OCTOPUS_DUNGEON_LOOT",
                     grantId,
                     "OCTOPUS_DUNGEON",
@@ -312,6 +347,12 @@ public class DungeonService {
         loot.setQuantity(room.getLootQuantity() != null ? room.getLootQuantity() : 0);
         loot.setCoinsMinor(room.getLootCoinsMinor() != null ? room.getLootCoinsMinor() : 0L);
         lootRepository.save(loot);
+    }
+
+    private void clearRoom(UUID runId, DungeonRunRoom room) {
+        room.setRoomStatus(DungeonRoomStatus.CLEARED);
+        roomRepository.save(room);
+        unlockLinkedRooms(runId, room);
     }
 
     private void unlockLinkedRooms(UUID runId, DungeonRunRoom clearedRoom) {
@@ -373,18 +414,23 @@ public class DungeonService {
                 ));
 
         List<DungeonRoomNodeDto> map = rooms.stream()
-                .map(room -> new DungeonRoomNodeDto(
-                        room.getId(),
-                        room.getLayerIndex(),
-                        room.getSlotIndex(),
-                        room.getRoomType(),
-                        room.getRoomStatus(),
-                        room.getEnemyTemplateId(),
-                        room.getLootItem() != null ? room.getLootItem().getId() : null,
-                        room.getLootQuantity(),
-                        room.getLootCoinsMinor(),
-                        linksByFrom.getOrDefault(room.getId(), List.of())
-                ))
+                .map(room -> {
+                    // Loot is rolled lazily when a room is actually resolved (see
+                    // DungeonLootResolver) - don't leak the reward before that happens.
+                    boolean revealed = room.getRoomStatus() == DungeonRoomStatus.CLEARED;
+                    return new DungeonRoomNodeDto(
+                            room.getId(),
+                            room.getLayerIndex(),
+                            room.getSlotIndex(),
+                            room.getRoomType(),
+                            room.getRoomStatus(),
+                            room.getEnemyTemplateId(),
+                            revealed && room.getLootItem() != null ? room.getLootItem().getId() : null,
+                            revealed ? room.getLootQuantity() : 0,
+                            revealed ? room.getLootCoinsMinor() : 0L,
+                            linksByFrom.getOrDefault(room.getId(), List.of())
+                    );
+                })
                 .toList();
 
         List<DungeonPendingLootDto> pendingLoot = lootRepository.findByDungeonRun_Id(runId).stream()
