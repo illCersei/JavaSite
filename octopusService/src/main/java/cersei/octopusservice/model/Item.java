@@ -42,4 +42,22 @@ public class Item {
 
     @Column(name = "speed_stat", nullable = false)
     private Integer speedStat;
+
+    @Column(name = "crit_chance", nullable = false)
+    private Integer critChance;
+
+    @Column(name = "crit_damage", nullable = false)
+    private Integer critDamage;
+
+    @Column(name = "accuracy", nullable = false)
+    private Integer accuracy;
+
+    @Column(name = "evasion", nullable = false)
+    private Integer evasion;
+
+    @Column(name = "tenacity", nullable = false)
+    private Integer tenacity;
+
+    @Column(name = "status_power", nullable = false)
+    private Integer statusPower;
 }

@@ -12,6 +12,12 @@ public record ItemDto(
         Integer magicPowerStat,
         Integer armorStat,
         Integer magicResistStat,
-        Integer speedStat
+        Integer speedStat,
+        Integer critChance,
+        Integer critDamage,
+        Integer accuracy,
+        Integer evasion,
+        Integer tenacity,
+        Integer statusPower
 ) {
 }

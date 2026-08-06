@@ -70,6 +70,15 @@ public class EnemyCatalogService {
                 .orElseThrow(() -> new FightServiceException("No boss template for tier " + tier));
     }
 
+    // Baseline defaults mirror StatCalculator's BASE_* constants, so an enemy template that
+    // doesn't set these fields plays by the same rules as a bare octopus with no gear.
+    private static final int BASE_CRIT_CHANCE = 5;
+    private static final int BASE_CRIT_DAMAGE = 150;
+    private static final int BASE_ACCURACY = 100;
+    private static final int BASE_EVASION = 0;
+    private static final int BASE_TENACITY = 0;
+    private static final int BASE_STATUS_POWER = 0;
+
     private EnemyTemplateDto parse(JsonNode node) {
         JsonNode stats = node.get("stats");
         List<SkillDto> skills = parseSkills(node.get("skills"));
@@ -83,10 +92,20 @@ public class EnemyCatalogService {
                         stats.get("magicPower").asInt(),
                         stats.get("armor").asInt(),
                         stats.get("magicResist").asInt(),
-                        stats.get("speed").asInt()
+                        stats.get("speed").asInt(),
+                        intOrDefault(stats.get("critChance"), BASE_CRIT_CHANCE),
+                        intOrDefault(stats.get("critDamage"), BASE_CRIT_DAMAGE),
+                        intOrDefault(stats.get("accuracy"), BASE_ACCURACY),
+                        intOrDefault(stats.get("evasion"), BASE_EVASION),
+                        intOrDefault(stats.get("tenacity"), BASE_TENACITY),
+                        intOrDefault(stats.get("statusPower"), BASE_STATUS_POWER)
                 ),
                 skills
         );
+    }
+
+    private static int intOrDefault(JsonNode node, int defaultValue) {
+        return node == null || node.isNull() ? defaultValue : node.asInt();
     }
 
     private List<SkillDto> parseSkills(JsonNode skillsNode) {

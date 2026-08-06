@@ -18,7 +18,13 @@ public class ItemDtoMapper {
                 item.getMagicPowerStat(),
                 item.getArmorStat(),
                 item.getMagicResistStat(),
-                item.getSpeedStat()
+                item.getSpeedStat(),
+                item.getCritChance(),
+                item.getCritDamage(),
+                item.getAccuracy(),
+                item.getEvasion(),
+                item.getTenacity(),
+                item.getStatusPower()
         );
     }
 }

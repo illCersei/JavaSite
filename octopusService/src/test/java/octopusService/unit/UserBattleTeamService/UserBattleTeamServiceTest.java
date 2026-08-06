@@ -85,7 +85,7 @@ class UserBattleTeamServiceTest {
 
         CombatSnapshotDto snapshot = new CombatSnapshotDto(
                 1, 10, "Ace", 5, 1, 1, CombatRole.BRUISER,
-                new CombatStatsDto(1000, 10, 10, 10, 10, 10),
+                new CombatStatsDto(1000, 10, 10, 10, 10, 10, 5, 150, 100, 0, 0, 0),
                 Set.of(), List.of(), List.of()
         );
         when(userOctopusQueryService.getCombatSnapshot(eq(userId), anyInt())).thenReturn(snapshot);

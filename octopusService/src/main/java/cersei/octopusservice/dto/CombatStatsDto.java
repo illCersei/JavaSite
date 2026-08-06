@@ -6,6 +6,12 @@ public record CombatStatsDto(
         int magicPower,
         int armor,
         int magicResist,
-        int speed
+        int speed,
+        int critChance,
+        int critDamage,
+        int accuracy,
+        int evasion,
+        int tenacity,
+        int statusPower
 ) {
 }

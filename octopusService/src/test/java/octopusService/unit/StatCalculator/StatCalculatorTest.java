@@ -53,6 +53,12 @@ class StatCalculatorTest {
         weapon.setArmorStat(2);
         weapon.setMagicResistStat(1);
         weapon.setSpeedStat(1);
+        weapon.setCritChance(0);
+        weapon.setCritDamage(0);
+        weapon.setAccuracy(0);
+        weapon.setEvasion(0);
+        weapon.setTenacity(0);
+        weapon.setStatusPower(0);
 
         UserOctopusEquipment equipment = new UserOctopusEquipment();
         equipment.setSlot(ItemSlot.WEAPON);
@@ -68,5 +74,45 @@ class StatCalculatorTest {
         assertEquals(5, stats.magicResist());
         assertEquals(7, stats.speed());
         assertEquals(500 + 5 * 50 + 10 * 5 + 5 * 3, stats.hp());
+    }
+
+    @Test
+    void when_ComputeWithEquipment_ClampsCritChanceAndEvasionAtCaps() {
+        UserOctopus userOctopus = new UserOctopus();
+        userOctopus.setId(2);
+        userOctopus.setLevel(1);
+        userOctopus.setOctopus(new Octopus());
+        userOctopus.setRole(CombatRole.BRUISER);
+        userOctopus.setCurrentAttackStat(0);
+        userOctopus.setCurrentMagicPowerStat(0);
+        userOctopus.setCurrentArmorStat(0);
+        userOctopus.setCurrentMagicResistStat(0);
+        userOctopus.setCurrentSpeedStat(0);
+        userOctopus.setCurrentFreeSkillPoints(0);
+
+        Item overloadedItem = new Item();
+        overloadedItem.setAttackStat(0);
+        overloadedItem.setMagicPowerStat(0);
+        overloadedItem.setArmorStat(0);
+        overloadedItem.setMagicResistStat(0);
+        overloadedItem.setSpeedStat(0);
+        overloadedItem.setCritChance(200);
+        overloadedItem.setCritDamage(50);
+        overloadedItem.setAccuracy(0);
+        overloadedItem.setEvasion(200);
+        overloadedItem.setTenacity(0);
+        overloadedItem.setStatusPower(0);
+
+        UserOctopusEquipment equipment = new UserOctopusEquipment();
+        equipment.setSlot(ItemSlot.ARMOR);
+        equipment.setItem(overloadedItem);
+
+        when(equipmentRepository.findByUserOctopus_IdOrderByIdAsc(2)).thenReturn(List.of(equipment));
+
+        CombatStatsDto stats = statCalculator.computeWithEquipment(userOctopus);
+
+        assertEquals(75, stats.critChance());
+        assertEquals(45, stats.evasion());
+        assertEquals(200, stats.critDamage());
     }
 }
