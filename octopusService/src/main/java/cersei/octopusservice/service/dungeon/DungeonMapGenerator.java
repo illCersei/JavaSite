@@ -39,7 +39,12 @@ public class DungeonMapGenerator {
         List<List<DungeonRunRoom>> layers = new ArrayList<>();
 
         for (int layer = 0; layer < depthLayers; layer++) {
-            int roomCount = layer == depthLayers - 1 ? 1 : 2 + random.nextInt(2);
+            // Layer 0 gets exactly 1 room like the boss layer does: markStartRoom() below only
+            // ever marks slot 0 of layer 0 AVAILABLE, and connectLayers() only links layer N to
+            // N+1 (nothing links *into* layer 0) - so any extra layer-0 room would be LOCKED
+            // forever with no way to ever reach it. A single fixed entry point is also just what
+            // "start room" means for this map shape.
+            int roomCount = (layer == 0 || layer == depthLayers - 1) ? 1 : 2 + random.nextInt(2);
             List<DungeonRunRoom> layerRooms = new ArrayList<>();
             for (int slot = 0; slot < roomCount; slot++) {
                 layerRooms.add(createRoom(run, template, layer, slot, random, layer == depthLayers - 1));
