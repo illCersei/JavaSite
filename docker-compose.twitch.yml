@@ -10,7 +10,7 @@ services:
       timeout: 5s
       retries: 5
 
-  twitch_service:
+  twitch-service:
     image: ghcr.io/illcersei/twitch-service:main
     restart: always
     extra_hosts:

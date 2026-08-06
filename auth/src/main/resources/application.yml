@@ -36,7 +36,7 @@ spring:
     password: ${SPRING_RABBITMQ_PASSWORD}
 
   kafka:
-    bootstrap-servers: kafka_container:${SPRING_KAFKA_PORT}
+    bootstrap-servers: kafka-container:${SPRING_KAFKA_PORT}
     consumer:
       group-id: auth-consumer-group
       auto-offset-reset: earliest

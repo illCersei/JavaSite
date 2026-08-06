@@ -30,7 +30,7 @@ spring:
       fail-on-unknown-properties: true
 
   kafka:
-    bootstrap-servers: kafka_container:${SPRING_KAFKA_PORT}
+    bootstrap-servers: kafka-container:${SPRING_KAFKA_PORT}
     consumer:
       group-id: auth-consumer-group
       auto-offset-reset: earliest

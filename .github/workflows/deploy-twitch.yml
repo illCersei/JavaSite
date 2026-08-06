@@ -142,9 +142,9 @@ jobs:
 
           echo "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_PULL_USERNAME" --password-stdin
 
-          docker compose -f docker-compose.twitch.yml pull twitch_service
+          docker compose -f docker-compose.twitch.yml pull twitch-service
           docker compose -f docker-compose.twitch.yml up -d redis
-          docker compose -f docker-compose.twitch.yml up -d twitch_service
+          docker compose -f docker-compose.twitch.yml up -d twitch-service
 
           docker compose -f docker-compose.twitch.yml ps
           EOF

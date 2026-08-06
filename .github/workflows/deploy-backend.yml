@@ -212,11 +212,11 @@ jobs:
           ssh -T -i ~/.ssh/id_ed25519 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
           set -euo pipefail
           cd "$REMOTE_PATH"
-          mkdir -p logs/auth logs/profile logs/test_api logs/wallet logs/octopus
+          mkdir -p logs/auth logs/profile logs/test-api logs/wallet logs/octopus
           echo "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_PULL_USERNAME" --password-stdin
           docker compose -f docker-compose.backend.yml up -d redis rabbitmq kafka
-          docker compose -f docker-compose.backend.yml pull auth_service test_api profile_service wallet_service octopus_service
-          docker compose -f docker-compose.backend.yml up -d auth_service test_api profile_service wallet_service octopus_service
+          docker compose -f docker-compose.backend.yml pull auth-service test-api profile-service wallet-service octopus-service
+          docker compose -f docker-compose.backend.yml up -d auth-service test-api profile-service wallet-service octopus-service
           docker compose -f docker-compose.backend.yml ps
           EOF
 
