@@ -5,12 +5,12 @@
 
 INSERT INTO octopus_skill (id, name, description, element_type, cooldown_ms, mana_cost)
 VALUES
-  (1, 'Toxic Ink', 'Poison hit + poison DOT.', 'POISON', 6000, 15),
-  (2, 'Frost Bubble', 'Frost damage and slow (future debuff).', 'FROST', 8000, 20),
-  (3, 'Abyss Drain', 'Magic damage and self heal.', 'ABYSS', 10000, 30),
-  (4, 'Flame Rush', 'Burst single target fire strike.', 'FLAME', 7000, 18),
-  (5, 'Storm Jolt', 'Fast chain hit with storm element.', 'STORM', 6500, 16),
-  (6, 'Tidal Guard', 'Small shield and sustain pulse.', 'TIDE', 9000, 22)
+  (1, 'Ядовитые Чернила', 'Ядовитый удар с длительным отравлением.', 'POISON', 6000, 15),
+  (2, 'Ледяной Пузырь', 'Ледяной удар стихией мороза.', 'FROST', 8000, 20),
+  (3, 'Иссушение Бездны', 'Магический урон с самоисцелением.', 'ABYSS', 10000, 30),
+  (4, 'Огненный Рывок', 'Мощный огненный удар по одной цели.', 'FLAME', 7000, 18),
+  (5, 'Штормовой Разряд', 'Быстрый удар стихией шторма.', 'STORM', 6500, 16),
+  (6, 'Стража Прилива', 'Небольшое исцеление и поддержка союзника.', 'TIDE', 9000, 22)
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name, description = EXCLUDED.description, element_type = EXCLUDED.element_type,
   cooldown_ms = EXCLUDED.cooldown_ms, mana_cost = EXCLUDED.mana_cost;

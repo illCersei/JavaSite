@@ -8,23 +8,23 @@ INSERT INTO item (
     tier,
     attack_stat, magic_power_stat, armor_stat, magic_resist_stat, speed_stat
 )
-VALUES (1, 'Coral Spear', 'Starter weapon. +ATK', 'WEAPON', 1,
+VALUES (1, 'Коралловое Копьё', 'Стартовое оружие. +Атака', 'WEAPON', 1,
         6, 0, 2, 1, 1),
-       (2, 'Kelp Mail', 'Starter armor.', 'ARMOR', 1,
+       (2, 'Кольчуга из Водорослей', 'Стартовая броня.', 'ARMOR', 1,
         2, 0, 12, 4, 0),
-       (3, 'Shell Helm', 'Starter helmet.', 'HELMET', 1,
+       (3, 'Шлем из Ракушки', 'Стартовый шлем.', 'HELMET', 1,
         2, 0, 8, 6, 2),
-       (4, 'Tide Boots', 'Starter boots.', 'BOOTS', 1,
+       (4, 'Ботинки Прилива', 'Стартовые ботинки.', 'BOOTS', 1,
         3, 0, 6, 3, 6),
-       (5, 'Abyss Sigil', 'Starter artifact.', 'ARTIFACT', 1,
+       (5, 'Печать Бездны', 'Стартовый артефакт.', 'ARTIFACT', 1,
         0, 8, 0, 8, 0),
-       (6, 'Venom Fang', 'Rare weapon.', 'WEAPON', 2,
+       (6, 'Ядовитый Клык', 'Редкое оружие.', 'WEAPON', 2,
         10, 2, 0, 2, 0),
-       (7, 'Guardian Carapace', 'Rare armor.', 'ARMOR', 2,
+       (7, 'Панцирь Стража', 'Редкая броня.', 'ARMOR', 2,
         4, 0, 16, 6, 0),
-       (8, 'Frost Crown', 'Rare helmet.', 'HELMET', 2,
+       (8, 'Ледяная Корона', 'Редкий шлем.', 'HELMET', 2,
         4, 0, 10, 8, 3),
-       (9, 'Raider Fins', 'Rare boots.', 'BOOTS', 2,
+       (9, 'Ласты Разбойника', 'Редкие ботинки.', 'BOOTS', 2,
         4, 0, 8, 4, 8)
 ON CONFLICT (id)
     DO UPDATE SET

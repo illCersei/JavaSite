@@ -4,17 +4,21 @@
 -- (see application.yml), so the gacha roll needs exactly ids 1..6 to exist. One tier-1
 -- starter per element already established by R__seed_skills.sql, lightly stat-leaned
 -- to match its element flavor.
+--
+-- starter_skill_id is set by R__seed_skills.sql, not here: repeatable migrations run in
+-- alphabetical-by-description order ("seed_octopus_catalog" before "seed_skills"), so the
+-- octopus_skill rows this column's FK points to don't exist yet at this point in a fresh DB.
 
 INSERT INTO octopus (
     id, name, element_type, tier,
     attack_stat, magic_power_stat, armor_stat, magic_resist_stat, speed_stat
 )
-VALUES (1, 'Inkling Prowler', 'POISON', 1, 12, 4, 6, 5, 8),
-       (2, 'Glacial Drifter', 'FROST', 1, 6, 8, 12, 9, 4),
-       (3, 'Shadow Siphon', 'ABYSS', 1, 5, 13, 6, 8, 6),
-       (4, 'Ember Kraken', 'FLAME', 1, 13, 6, 5, 4, 10),
-       (5, 'Voltjet', 'STORM', 1, 8, 6, 4, 5, 15),
-       (6, 'Current Warden', 'TIDE', 1, 6, 6, 10, 11, 5)
+VALUES (1, 'Чернильный Хищник', 'POISON', 1, 12, 4, 6, 5, 8),
+       (2, 'Ледяной Скиталец', 'FROST', 1, 6, 8, 12, 9, 4),
+       (3, 'Пожиратель Тьмы', 'ABYSS', 1, 5, 13, 6, 8, 6),
+       (4, 'Пламенный Кракен', 'FLAME', 1, 13, 6, 5, 4, 10),
+       (5, 'Грозовой Скороход', 'STORM', 1, 8, 6, 4, 5, 15),
+       (6, 'Страж Течения', 'TIDE', 1, 6, 6, 10, 11, 5)
 ON CONFLICT (id)
     DO UPDATE SET
                   name              = EXCLUDED.name,
