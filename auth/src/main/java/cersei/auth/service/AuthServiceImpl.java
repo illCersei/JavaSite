@@ -79,8 +79,9 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new AuthException("Пользователь не найден", HttpStatus.UNAUTHORIZED));
 
         String accessToken = jwtGenerator.generateToken(user);
+        String rotatedRefreshToken = refreshTokenService.rotate(refreshToken);
 
-        return new LoginOkResponseDto("Token refreshed", user.getUsername(), user.getEmail(), accessToken, dto.getRefreshToken());
+        return new LoginOkResponseDto("Token refreshed", user.getUsername(), user.getEmail(), accessToken, rotatedRefreshToken);
     }
 
     @Override
