@@ -1,41 +1,168 @@
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using FightService.Application;
+using FightService.Application.Contracts;
+using FightService.Domain.Exceptions;
+using FightService.Domain.ValueObjects;
+using FightService.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+string connectionString = builder.Configuration.GetConnectionString("FightDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:FightDb is not configured");
+builder.Services.AddDbContext<FightDbContext>(options => options.UseNpgsql(connectionString));
+
+builder.Services.AddScoped<IBattleSessionRepository, BattleSessionRepository>();
+builder.Services.AddSingleton<BattleEngine>();
+
+string? jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret))
+{
+    throw new InvalidOperationException(
+        "Jwt:Secret is not configured - set the Jwt__Secret env var to the same JWT_SECRET the rest of the backend uses");
+}
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
+            NameClaimType = "sub"
+        };
+    });
+builder.Services.AddAuthorization();
+
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+const string corsPolicyName = "fight-service-cors";
+builder.Services.AddCors(options => options.AddPolicy(corsPolicyName, policy => policy
+    .WithOrigins(allowedOrigins)
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials()));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<FightDbContext>().Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+app.Use(async (context, next) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+    try
     {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
+        await next();
+    }
+    catch (DomainException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+    }
+});
+
+app.UseCors(corsPolicyName);
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapPost("/fight/start", async (
+        FightStartRequest request,
+        IBattleSessionRepository repository,
+        BattleEngine engine,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken) =>
+    {
+        Guid userId = RequireUserId(user);
+        if (request.Context.UserId != userId)
+        {
+            return Results.Forbid();
+        }
+
+        var session = engine.StartBattle(request);
+        await repository.SaveAsync(session, cancellationToken);
+        return Results.Ok(BattleMapper.ToStateDto(session));
     })
-    .WithName("GetWeatherForecast");
+    .RequireAuthorization();
+
+app.MapPost("/fight/{battleId}/action", async (
+        string battleId,
+        FightActionRequest request,
+        IBattleSessionRepository repository,
+        BattleEngine engine,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken) =>
+    {
+        Guid userId = RequireUserId(user);
+        var session = await repository.LoadAsync(BattleId.Create(battleId), cancellationToken);
+        if (session is null)
+        {
+            return Results.NotFound();
+        }
+        if (session.UserId != userId)
+        {
+            return Results.Forbid();
+        }
+
+        engine.SubmitAction(session, request.ActorId, request.SkillId, request.TargetIds);
+        await repository.SaveAsync(session, cancellationToken);
+        return Results.Ok(BattleMapper.ToStateDto(session));
+    })
+    .RequireAuthorization();
+
+app.MapGet("/fight/{battleId}/state", async (
+        string battleId,
+        IBattleSessionRepository repository,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken) =>
+    {
+        Guid userId = RequireUserId(user);
+        var session = await repository.LoadAsync(BattleId.Create(battleId), cancellationToken);
+        if (session is null)
+        {
+            return Results.NotFound();
+        }
+        if (session.UserId != userId)
+        {
+            return Results.Forbid();
+        }
+
+        return Results.Ok(BattleMapper.ToStateDto(session));
+    })
+    .RequireAuthorization();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+static Guid RequireUserId(ClaimsPrincipal user)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    string? uuid = user.FindFirstValue("uuid");
+    if (uuid is null || !Guid.TryParse(uuid, out Guid userId))
+    {
+        throw new DomainException("JWT is missing a valid 'uuid' claim");
+    }
+    return userId;
 }
