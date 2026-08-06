@@ -1,9 +1,11 @@
 package cersei.octopusservice.controller;
 
 import cersei.octopusservice.dto.CombatSnapshotDto;
+import cersei.octopusservice.dto.SummonOctopusRequest;
 import cersei.octopusservice.dto.UserOctopusAddedExpDto;
 import cersei.octopusservice.dto.UserOctopusAddedStatsDto;
 import cersei.octopusservice.dto.UserOctopusDto;
+import cersei.octopusservice.service.UserOctopusStashService;
 import cersei.octopusservice.service.useroctopus.UserOctopusProgressionService;
 import cersei.octopusservice.service.useroctopus.UserOctopusQueryService;
 import cersei.octopusservice.utils.StatsForUpgrade;
@@ -21,6 +23,17 @@ import java.util.UUID;
 public class UserOctopusController {
     private final UserOctopusQueryService userOctopusQueryService;
     private final UserOctopusProgressionService userOctopusProgressionService;
+    private final UserOctopusStashService userOctopusStashService;
+
+    @PostMapping("/summon")
+    UserOctopusDto summon(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody SummonOctopusRequest request,
+            @RequestHeader("Idempotency-Key") String idempotencyKey
+    ) {
+        UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
+        return userOctopusStashService.summon(userId, request.octopusId(), idempotencyKey);
+    }
 
     @GetMapping("/get/all")
     List<UserOctopusDto> getUserOctopuses(@AuthenticationPrincipal Jwt jwt){
