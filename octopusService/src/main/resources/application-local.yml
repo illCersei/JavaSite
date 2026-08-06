@@ -76,6 +76,7 @@ server:
 
 wallet:
   base-url: http://localhost:${WALLET_SERVER_PORT:8005}
+  service-token: ${WALLET_SERVICE_TOKEN:}
 
 octopus:
   instance-id: ${OCTOPUS_INSTANCE_ID:}
@@ -94,6 +95,7 @@ octopus:
     gacha-events-topic: ${OCTOPUS_KAFKA_GACHA_TOPIC:octopus.gacha.events}
   fight:
     base-url: http://localhost:22822
+    public-base-url: http://localhost:22822
 
 jwt:
   secret: ${JWT_SECRET}

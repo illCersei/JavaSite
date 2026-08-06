@@ -69,9 +69,12 @@ jwt:
 
 wallet:
   base-url: ${WALLET_BASE_URL:http://wallet-service:8005}
+  service-token: ${WALLET_SERVICE_TOKEN:}
 
 octopus:
   instance-id: ${OCTOPUS_INSTANCE_ID:}
+  security:
+    privileged-roles: ${OCTOPUS_PRIVILEGED_ROLES:ADMIN}
   sprite-url-template: ${OCTOPUS_SPRITE_URL_TEMPLATE:https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png}
   gacha:
     cost-minor: ${OCTOPUS_GACHA_COST_MINOR:100}
@@ -88,6 +91,12 @@ octopus:
     gacha-events-topic: ${OCTOPUS_KAFKA_GACHA_TOPIC:octopus.gacha.events}
   fight:
     base-url: ${OCTOPUS_FIGHT_BASE_URL:http://localhost:22822}
+    # Same fightService, but the address the BROWSER can reach - not necessarily the
+    # same as base-url (e.g. docker-compose's base-url is the internal container DNS
+    # name, which only octopusService can resolve; the frontend needs a host-mapped
+    # address). Defaults to base-url, which is correct whenever both sides run on the
+    # same host (IDE-run mode).
+    public-base-url: ${OCTOPUS_FIGHT_PUBLIC_BASE_URL:${octopus.fight.base-url}}
 
 logging:
   level:

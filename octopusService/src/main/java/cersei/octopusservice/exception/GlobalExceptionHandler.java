@@ -72,4 +72,10 @@ public class GlobalExceptionHandler {
         ApiError error = new ApiError("BAD_REQUEST", ex.getMessage(), null);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiErrorResponse(List.of(error)));
     }
+
+    @ExceptionHandler(ForbiddenActionException.class)
+    public ResponseEntity<ApiErrorResponse> forbidden(ForbiddenActionException ex) {
+        ApiError error = new ApiError("FORBIDDEN", ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiErrorResponse(List.of(error)));
+    }
 }

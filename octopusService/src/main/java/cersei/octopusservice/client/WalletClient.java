@@ -4,6 +4,7 @@ import cersei.octopusservice.dto.WalletOperationRequest;
 import cersei.octopusservice.dto.WalletOperationResponse;
 import cersei.octopusservice.exception.WalletOperationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
@@ -12,13 +13,19 @@ import org.springframework.web.client.RestClientResponseException;
 @RequiredArgsConstructor
 public class WalletClient {
 
+    private static final String SERVICE_TOKEN_HEADER = "X-Internal-Service-Token";
+
     private final RestClient walletRestClient;
+
+    @Value("${wallet.service-token}")
+    private String serviceToken;
 
     public WalletOperationResponse debit(String accessToken, WalletOperationRequest request) {
         try {
             WalletOperationResponse response = walletRestClient.post()
                     .uri("/private/me/game/debits")
                     .header("Authorization", "Bearer " + accessToken)
+                    .header(SERVICE_TOKEN_HEADER, serviceToken)
                     .body(request)
                     .retrieve()
                     .body(WalletOperationResponse.class);
@@ -37,6 +44,7 @@ public class WalletClient {
             WalletOperationResponse response = walletRestClient.post()
                     .uri("/private/me/game/credits")
                     .header("Authorization", "Bearer " + accessToken)
+                    .header(SERVICE_TOKEN_HEADER, serviceToken)
                     .body(request)
                     .retrieve()
                     .body(WalletOperationResponse.class);
@@ -55,6 +63,7 @@ public class WalletClient {
             walletRestClient.post()
                     .uri("/private/me/game/credits")
                     .header("Authorization", "Bearer " + accessToken)
+                    .header(SERVICE_TOKEN_HEADER, serviceToken)
                     .body(request)
                     .retrieve()
                     .toBodilessEntity();
