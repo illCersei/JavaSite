@@ -61,6 +61,12 @@ public class DungeonService {
     @Value("${octopus.fight.base-url}")
     private String fightServiceUrl;
 
+    // What we actually hand to the browser for the live turn loop - may differ from
+    // fightServiceUrl above (which is what THIS service uses to reach fightService
+    // server-to-server), see application.yml's comment on octopus.fight.public-base-url.
+    @Value("${octopus.fight.public-base-url}")
+    private String publicFightServiceUrl;
+
     @Transactional(readOnly = true)
     public List<DungeonTemplateDto> listTemplates() {
         return templateRepository.findAll().stream()
@@ -80,34 +86,51 @@ public class DungeonService {
         UUID runId = UUID.randomUUID();
         debitEntryCost(accessToken, userId, runId, template.getEntryCostMinor());
 
-        DungeonRun run = new DungeonRun();
-        run.setId(runId);
-        run.setUserId(userId);
-        run.setDungeonTemplate(template);
-        run.setStatus(DungeonRunStatus.ACTIVE);
-        run.setRngSeed(ThreadLocalRandom.current().nextLong());
-        run.setCreatedAt(Instant.now());
-        run.setUpdatedAt(Instant.now());
+        try {
+            DungeonRun run = new DungeonRun();
+            run.setId(runId);
+            run.setUserId(userId);
+            run.setDungeonTemplate(template);
+            run.setStatus(DungeonRunStatus.ACTIVE);
+            run.setRngSeed(ThreadLocalRandom.current().nextLong());
+            run.setCreatedAt(Instant.now());
+            run.setUpdatedAt(Instant.now());
 
-        DungeonMapGenerator.GeneratedDungeonMap map = mapGenerator.generate(run, template);
-        runRepository.save(run);
-        roomRepository.saveAll(map.rooms());
-        linkRepository.saveAll(map.links());
+            DungeonMapGenerator.GeneratedDungeonMap map = mapGenerator.generate(run, template);
+            runRepository.save(run);
+            roomRepository.saveAll(map.rooms());
+            linkRepository.saveAll(map.links());
 
-        DungeonRunRoom startRoom = map.rooms().stream()
-                .filter(r -> r.getLayerIndex() == 0 && r.getSlotIndex() == 0)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Start room not generated"));
-        run.setCurrentRoomId(startRoom.getId());
-        runRepository.save(run);
+            DungeonRunRoom startRoom = map.rooms().stream()
+                    .filter(r -> r.getLayerIndex() == 0 && r.getSlotIndex() == 0)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Start room not generated"));
+            run.setCurrentRoomId(startRoom.getId());
+            runRepository.save(run);
 
-        log.info("Dungeon run started userId={} runId={} templateId={}", userId, runId, templateId);
-        return buildState(run);
+            log.info("Dungeon run started userId={} runId={} templateId={}", userId, runId, templateId);
+            return buildState(run);
+        } catch (RuntimeException ex) {
+            // The entry-cost debit above is a separate HTTP call to wallet, outside this
+            // @Transactional's rollback - if anything after it fails, the DB changes roll
+            // back but the debit already went through, so refund it explicitly (same
+            // compensation pattern as GachaService.doSpin).
+            refundEntryCost(accessToken, runId, template.getEntryCostMinor());
+            throw ex;
+        }
     }
 
     @Transactional(readOnly = true)
     public DungeonRunStateDto getRun(UUID userId, UUID runId) {
         return buildState(requireRun(userId, runId));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<DungeonRunStateDto> getActiveRun(UUID userId) {
+        return runRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, DungeonRunStatus.ACTIVE)
+                .stream()
+                .findFirst()
+                .map(this::buildState);
     }
 
     @Transactional
@@ -168,7 +191,7 @@ public class DungeonService {
                 && !run.getCurrentFightId().isBlank()) {
             return new DungeonStartFightDto(
                     run.getCurrentFightId(),
-                    fightServiceUrl,
+                    publicFightServiceUrl,
                     roomId,
                     room.getRoomType().name()
             );
@@ -208,7 +231,7 @@ public class DungeonService {
         roomRepository.save(room);
 
         log.info("Dungeon fight started runId={} roomId={} battleId={}", runId, roomId, battleId);
-        return new DungeonStartFightDto(battleId, fightServiceUrl, roomId, room.getRoomType().name());
+        return new DungeonStartFightDto(battleId, publicFightServiceUrl, roomId, room.getRoomType().name());
     }
 
     @Transactional
@@ -335,6 +358,21 @@ public class DungeonService {
                 entryCostMinor,
                 response.balanceMinorAfter()
         );
+    }
+
+    private void refundEntryCost(String accessToken, UUID runId, long entryCostMinor) {
+        if (entryCostMinor <= 0) {
+            return;
+        }
+        WalletOperationRequest refundRequest = new WalletOperationRequest(
+                entryCostMinor,
+                "OCTOPUS_DUNGEON_ENTRY_REFUND",
+                runId.toString(),
+                "OCTOPUS_DUNGEON_REFUND",
+                "{\"reason\":\"OCTOPUS_DUNGEON_START_FAILURE\"}",
+                runId.toString()
+        );
+        walletClient.creditQuietly(accessToken, refundRequest);
     }
 
     private void collectRoomLoot(DungeonRun run, DungeonRunRoom room) {

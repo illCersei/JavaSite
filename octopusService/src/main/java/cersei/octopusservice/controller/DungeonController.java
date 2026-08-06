@@ -4,6 +4,7 @@ import cersei.octopusservice.dto.dungeon.*;
 import cersei.octopusservice.service.dungeon.DungeonService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +41,16 @@ public class DungeonController {
     ) {
         UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
         return dungeonService.getRun(userId, runId);
+    }
+
+    // Lets the frontend recover an in-progress run's id after a reload/new device
+    // without needing to remember it client-side - startRun() 400s if one already exists.
+    @GetMapping("/runs/active")
+    public ResponseEntity<DungeonRunStateDto> getActiveRun(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
+        return dungeonService.getActiveRun(userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/runs/{runId}/enter-room")
