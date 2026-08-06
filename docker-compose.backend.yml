@@ -163,8 +163,14 @@ services:
       SPRING_RABBITMQ_PASSWORD: ${SPRING_RABBITMQ_PASSWORD}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
       JWT_SECRET: ${JWT_SECRET}
-      WALLET_KAFKA_LISTENER_ENABLED: "true"
-      WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT: "true"
+      # Kafka credit/debit command channel has no in-repo producer and only checks
+      # JWT ownership (no role/cost gate) - keep it off until something actually
+      # needs it. Arbitrary direct credit/debit is admin-only by design (see
+      # WalletSecurityProperties) - do not flip these back to "true" without also
+      # adding a real authorization story for whichever caller needs them.
+      WALLET_KAFKA_LISTENER_ENABLED: "false"
+      WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT: "false"
+      WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
     depends_on:
       - kafka
     volumes:
@@ -199,6 +205,7 @@ services:
       # host-mapped port (8005) - application.yml's default assumes the old
       # per-service-port convention and is wrong here.
       WALLET_BASE_URL: http://wallet-service:${SERVER_PORT}
+      WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
     depends_on:
       redis:
         condition: service_healthy

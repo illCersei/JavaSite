@@ -86,6 +86,7 @@ wallet:
   security:
     allow-arbitrary-credit-debit: ${WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT:false}
     privileged-roles: ${WALLET_PRIVILEGED_ROLES:ADMIN}
+    service-token: ${WALLET_SERVICE_TOKEN:}
   kafka:
     commands-topic: wallet.commands
     replies-topic: wallet.commands.replies

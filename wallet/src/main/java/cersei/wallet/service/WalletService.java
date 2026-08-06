@@ -219,7 +219,10 @@ public class WalletService {
         entry.setReferenceType(referenceType);
         entry.setReferenceId(referenceId);
         entry.setMetadataJson(metadataJson);
-        ledgerEntryRepository.save(entry);
+        // Flush now (not just save()) so a concurrent duplicate insert violates
+        // uc_ledger_entries_wallet_reference right here, inside this try/catch, instead of
+        // silently at commit time after handleRaceCredit/handleRaceDebit is out of scope.
+        ledgerEntryRepository.saveAndFlush(entry);
 
         enqueueOutbox(wallet, newBalance, entryType, correlationId);
         return WalletOperationResult.builder()
@@ -254,7 +257,9 @@ public class WalletService {
         entry.setReferenceType(referenceType);
         entry.setReferenceId(referenceId);
         entry.setMetadataJson(metadataJson);
-        ledgerEntryRepository.save(entry);
+        // See applyCredit: flush explicitly so a concurrent duplicate is caught by the
+        // caller's try/catch instead of surfacing as an uncaught error at commit time.
+        ledgerEntryRepository.saveAndFlush(entry);
 
         enqueueOutbox(wallet, newBalance, entryType, correlationId);
         return WalletOperationResult.builder()
@@ -304,7 +309,10 @@ public class WalletService {
     private Wallet createWalletFirstCredit(UUID userId) {
         Wallet created = Wallet.newWallet(userId);
         try {
-            return walletRepository.save(created);
+            // save() alone defers the INSERT (and thus any unique-constraint violation) to
+            // transaction commit, which happens after this method has already returned -
+            // flush explicitly so a concurrent first-credit race is caught right here.
+            return walletRepository.saveAndFlush(created);
         } catch (DataIntegrityViolationException e) {
             return walletRepository
                     .findByUserIdForUpdate(userId)

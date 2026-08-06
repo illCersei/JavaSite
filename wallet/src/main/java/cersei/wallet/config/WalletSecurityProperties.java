@@ -25,6 +25,15 @@ public class WalletSecurityProperties {
     /** Роли из JWT claim {@code role}, без учёта регистра. */
     private String privilegedRoles = "ADMIN";
 
+    /**
+     * Общий секрет, которым другие сервисы (например octopusService) подтверждают,
+     * что кредит/дебет по {@code /private/me/game/**} инициирован их собственной
+     * бизнес-логикой, а не клиентом напрямую с чужим/своим JWT. Пусто = эндпоинты
+     * отключены (см. {@code GameWalletController}), т.к. без секрета их нельзя
+     * отличить от прямого вызова пользователем.
+     */
+    private String serviceToken = "";
+
     public Set<String> privilegedRolesSet() {
         return Arrays.stream(privilegedRoles.split(","))
                 .map(String::trim)
