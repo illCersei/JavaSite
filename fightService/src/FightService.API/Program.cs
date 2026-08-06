@@ -118,7 +118,7 @@ app.MapPost("/fight/{battleId}/action", async (
         CancellationToken cancellationToken) =>
     {
         Guid userId = RequireUserId(user);
-        var session = await repository.LoadAsync(BattleId.Create(battleId), cancellationToken);
+        var session = await repository.LoadForUpdateAsync(BattleId.Create(battleId), cancellationToken);
         if (session is null)
         {
             return Results.NotFound();

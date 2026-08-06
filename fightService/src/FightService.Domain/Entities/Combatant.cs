@@ -114,7 +114,16 @@ public sealed class Combatant
         CurrentHp = Math.Max(0, CurrentHp - (amount - absorbed));
     }
 
-    public void Heal(int amount) => CurrentHp = Math.Min(MaxHp, CurrentHp + amount);
+    // A dead combatant stays dead until whatever revive/resurrect mechanic the game
+    // design eventually adds explicitly overrides this - plain HEAL/HOT must not.
+    public void Heal(int amount)
+    {
+        if (IsDead)
+        {
+            return;
+        }
+        CurrentHp = Math.Min(MaxHp, CurrentHp + amount);
+    }
 
     // Shields absorb damage before HP until consumed; a fresh cast overwrites the pool
     // (no independent time-based expiry - simplest model that's still distinct from HEAL).
