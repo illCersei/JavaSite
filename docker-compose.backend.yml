@@ -28,7 +28,7 @@ services:
 
   kafka:
     image: apache/kafka:latest
-    container_name: kafka_container
+    container_name: kafka-container
     restart: always
     environment:
       KAFKA_NODE_ID: 1
@@ -50,7 +50,7 @@ services:
       - default
       - monitoring_net
 
-  auth_service:
+  auth-service:
     image: ghcr.io/illcersei/auth-service:main
     restart: always
     extra_hosts:
@@ -83,7 +83,7 @@ services:
         aliases:
           - auth-service
 
-  test_api:
+  test-api:
     image: ghcr.io/illcersei/test-api:main
     restart: always
     extra_hosts:
@@ -102,14 +102,14 @@ services:
     depends_on:
       - rabbitmq
     volumes:
-      - ./logs/test_api:/app/logs
+      - ./logs/test-api:/app/logs
     networks:
       default:
       monitoring_net:
         aliases:
           - test-service
 
-  profile_service:
+  profile-service:
     image: ghcr.io/illcersei/profile-service:main
     restart: always
     extra_hosts:
@@ -141,7 +141,7 @@ services:
         aliases:
           - profile-service
 
-  wallet_service:
+  wallet-service:
     image: ghcr.io/illcersei/wallet-service:main
     restart: always
     extra_hosts:
@@ -175,7 +175,7 @@ services:
         aliases:
           - wallet-service
 
-  octopus_service:
+  octopus-service:
     image: ghcr.io/illcersei/octopus-service:main
     restart: always
     extra_hosts:
@@ -195,12 +195,16 @@ services:
       SPRING_DATA_REDIS_HOST: ${SPRING_DATA_REDIS_HOST}
       SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
+      # wallet-service listens internally on the shared SERVER_PORT, not its
+      # host-mapped port (8005) - application.yml's default assumes the old
+      # per-service-port convention and is wrong here.
+      WALLET_BASE_URL: http://wallet-service:${SERVER_PORT}
     depends_on:
       redis:
         condition: service_healthy
       kafka:
         condition: service_started
-      wallet_service:
+      wallet-service:
         condition: service_started
     volumes:
       - ./logs/octopus:/app/logs

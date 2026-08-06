@@ -4,6 +4,11 @@ target/
 mvnw
 mvnw.cmd
 
+# .NET (bare "bin/"/"obj/" only excludes a top-level match - these are nested under
+# fightService/src/*/, so they need the explicit **/ prefix to match at any depth)
+**/bin/
+**/obj/
+
 # IDE
 .idea/
 *.iml
