@@ -5,10 +5,13 @@ import cersei.octopusservice.dto.OctopusSummaryDto;
 import cersei.octopusservice.dto.UserOctopusDto;
 import cersei.octopusservice.exception.OctopusNotFoundException;
 import cersei.octopusservice.model.Octopus;
+import cersei.octopusservice.model.OctopusSkill;
 import cersei.octopusservice.model.UserOctopus;
+import cersei.octopusservice.model.UserOctopusSkillSlot;
 import cersei.octopusservice.model.UserOctopusStash;
 import cersei.octopusservice.repository.OctopusCatalogRepository;
 import cersei.octopusservice.repository.UserOctopusRepository;
+import cersei.octopusservice.repository.UserOctopusSkillSlotRepository;
 import cersei.octopusservice.repository.UserOctopusStashRepository;
 import cersei.octopusservice.service.useroctopus.utils.UserOctopusDtoAssembler;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ public class UserOctopusStashService {
     private final OctopusCatalogService octopusCatalogService;
     private final OctopusCatalogRepository octopusCatalogRepository;
     private final UserOctopusRepository userOctopusRepository;
+    private final UserOctopusSkillSlotRepository userOctopusSkillSlotRepository;
     private final UserOctopusDtoAssembler userOctopusDtoAssembler;
     private final IdempotencyService idempotencyService;
 
@@ -89,10 +93,24 @@ public class UserOctopusStashService {
         instance.setCurrentMagicResistStat(template.getMagicResistStat());
         instance.setCurrentSpeedStat(template.getSpeedStat());
         instance.setCurrentFreeSkillPoints(template.getFreeSkillPoints());
+
+        OctopusSkill starterSkill = template.getStarterSkill();
+        if (starterSkill != null) {
+            instance.getOpenSkills().add(starterSkill);
+        }
         userOctopusRepository.save(instance);
 
-        log.info("Octopus summoned userId={} octopusId={} userOctopusId={} stashLeft={}",
-                userId, octopusId, instance.getId(), stash.getQuantity());
+        if (starterSkill != null) {
+            UserOctopusSkillSlot slot = new UserOctopusSkillSlot();
+            slot.setUserOctopus(instance);
+            slot.setSlotIndex(0);
+            slot.setSkill(starterSkill);
+            userOctopusSkillSlotRepository.save(slot);
+        }
+
+        log.info("Octopus summoned userId={} octopusId={} userOctopusId={} stashLeft={} starterSkillId={}",
+                userId, octopusId, instance.getId(), stash.getQuantity(),
+                starterSkill != null ? starterSkill.getId() : null);
         return userOctopusDtoAssembler.toDto(instance);
     }
 

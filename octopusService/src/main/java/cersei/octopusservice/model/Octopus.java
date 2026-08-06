@@ -6,6 +6,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,4 +51,9 @@ public class Octopus {
 
     @Column(name = "free_skill_points", nullable = false)
     private Integer freeSkillPoints;
+
+    /** Тематический скилл этого шаблона (см. R__seed_skills.sql) - выдаётся и экипируется автоматически при summon. */
+    @ManyToOne
+    @JoinColumn(name = "starter_skill_id")
+    private OctopusSkill starterSkill;
 }

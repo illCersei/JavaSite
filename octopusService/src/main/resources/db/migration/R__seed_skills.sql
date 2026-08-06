@@ -52,3 +52,10 @@ INSERT INTO octopus_skill_effect (id, skill_id, effect_type, element_type, base_
 VALUES
   (6001, 6, 'HEAL', 'TIDE', 10, 'MAGIC_POWER', 6000, NULL, NULL, NULL)
 ON CONFLICT (id) DO NOTHING;
+
+-- Each octopus's own themed skill (same id, since both catalogs were seeded 1:1 by
+-- element from the start) - UserOctopusStashService grants and equips this automatically
+-- on summon, so every octopus starts with a skill matching its element instead of an
+-- empty loadout. Runs after both octopus and octopus_skill rows exist (repeatable
+-- migrations apply in alphabetical order: seed_octopus_catalog, then this one).
+UPDATE octopus SET starter_skill_id = id WHERE id BETWEEN 1 AND 6;
