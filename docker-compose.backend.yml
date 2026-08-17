@@ -199,6 +199,8 @@ services:
       OCTOPUS_FIGHT_BASE_URL: http://fight-service:${FIGHT_SERVER_PORT}
       OCTOPUS_FIGHT_PUBLIC_BASE_URL: https://gorelov.net
       OCTOPUS_SPRITE_URL_TEMPLATE: https://gorelov.net/api/v1/octopus/images/octopus/%d.png
+      OCTOPUS_ITEM_ICON_URL_TEMPLATE: https://gorelov.net/api/v1/octopus/images/items/%d.png
+      OCTOPUS_SKILL_ICON_URL_TEMPLATE: https://gorelov.net/api/v1/octopus/images/skills/%d.png
       WALLET_BASE_URL: http://wallet-service:${SERVER_PORT}
       WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
     depends_on:

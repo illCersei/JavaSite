@@ -6,6 +6,7 @@ public record ItemDto(
         Integer id,
         String name,
         String description,
+        String imageUrl,
         ItemSlot slot,
         Integer tier,
         Integer attackStat,

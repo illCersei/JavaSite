@@ -259,6 +259,8 @@ services:
       WALLET_BASE_URL: http://wallet-service:${SERVER_PORT}
       WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
       OCTOPUS_SPRITE_URL_TEMPLATE: http://localhost:8006/api/v1/octopus/images/octopus/%d.png
+      OCTOPUS_ITEM_ICON_URL_TEMPLATE: http://localhost:8006/api/v1/octopus/images/items/%d.png
+      OCTOPUS_SKILL_ICON_URL_TEMPLATE: http://localhost:8006/api/v1/octopus/images/skills/%d.png
     depends_on:
       postgres:
         condition: service_healthy

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -39,10 +40,13 @@ class UserItemServiceTest {
 
     @BeforeEach
     void setUp() {
+        ItemDtoMapper itemDtoMapper = new ItemDtoMapper();
+        ReflectionTestUtils.setField(itemDtoMapper, "itemIconUrlTemplate", "item-%d.png");
+
         userItemService = new UserItemService(
                 userItemStackRepository,
                 itemCatalogService,
-                new ItemDtoMapper()
+                itemDtoMapper
         );
 
         item = new Item();

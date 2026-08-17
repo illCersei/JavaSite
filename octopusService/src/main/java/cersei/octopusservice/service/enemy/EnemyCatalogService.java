@@ -132,6 +132,7 @@ public class EnemyCatalogService {
                             skill.get("id").asInt(),
                             skill.get("name").asText(),
                             skill.get("description").asText(null),
+                            textOrNull(skill.get("imageUrl")),
                             skill.get("elementType").asText(),
                             skill.get("cooldownMs").asInt(),
                             skill.get("manaCost").asInt(),

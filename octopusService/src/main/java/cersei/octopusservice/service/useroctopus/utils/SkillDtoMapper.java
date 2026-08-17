@@ -4,12 +4,16 @@ import cersei.octopusservice.dto.SkillDto;
 import cersei.octopusservice.dto.SkillEffectDto;
 import cersei.octopusservice.model.OctopusSkill;
 import cersei.octopusservice.model.OctopusSkillEffect;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
 public class SkillDtoMapper {
+
+    @Value("${octopus.skill-icon-url-template}")
+    private String skillIconUrlTemplate;
 
     public SkillDto toDto(OctopusSkill skill) {
         if (skill == null) {
@@ -19,6 +23,7 @@ public class SkillDtoMapper {
                 skill.getId(),
                 skill.getName(),
                 skill.getDescription(),
+                skillIconUrlTemplate.formatted(skill.getId()),
                 skill.getElementType().name(),
                 skill.getCooldownMs(),
                 skill.getManaCost(),

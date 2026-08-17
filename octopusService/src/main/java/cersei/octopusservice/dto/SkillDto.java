@@ -6,6 +6,7 @@ public record SkillDto(
         Integer id,
         String name,
         String description,
+        String imageUrl,
         String elementType,
         Integer cooldownMs,
         Integer manaCost,

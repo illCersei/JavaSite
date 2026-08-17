@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -45,11 +46,15 @@ class UserOctopusDtoAssemblerTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(itemDtoMapper, "itemIconUrlTemplate", "item-%d.png");
+        SkillDtoMapper skillDtoMapper = new SkillDtoMapper();
+        ReflectionTestUtils.setField(skillDtoMapper, "skillIconUrlTemplate", "skill-%d.png");
+
         assembler = new UserOctopusDtoAssembler(
                 equipmentRepository,
                 skillSlotRepository,
                 itemDtoMapper,
-                new SkillDtoMapper()
+                skillDtoMapper
         );
 
         Octopus baseOctopus = new Octopus();
