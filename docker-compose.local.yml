@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: postgres_container
+    container_name: postgres-container
     restart: always
     environment:
       POSTGRES_DB: twitch_monitor
@@ -20,7 +20,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: redis_container
+    container_name: redis-container
     restart: always
     volumes:
       - redis_data:/data
@@ -32,7 +32,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: rabbitmq_container
+    container_name: rabbitmq-container
     restart: always
     environment:
       RABBITMQ_DEFAULT_USER: ${SPRING_RABBITMQ_USERNAME}
@@ -43,17 +43,17 @@ services:
 
   kafka:
     image: apache/kafka:latest
-    container_name: kafka_container
+    container_name: kafka-container
     restart: always
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka_container:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-container:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka_container:9093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-container:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
@@ -62,11 +62,11 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
 
-  auth_service:
+  auth-service:
     build:
       context: .
       dockerfile: auth/Dockerfile
-    container_name: auth_service
+    container_name: auth-service
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -78,7 +78,8 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
+      AUTH_DB_NAME: auth_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/auth_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -97,11 +98,11 @@ services:
     volumes:
       - ./logs/auth:/app/logs
 
-  twitch_service:
+  twitch-service:
     build:
       context: .
       dockerfile: twitchService/Dockerfile
-    container_name: twitch_service
+    container_name: twitch-service
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -113,10 +114,11 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
+      TWITCH_DB_NAME: twitch_monitor
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      SPRING_DATA_REDIS_HOST: redis_container
+      SPRING_DATA_REDIS_HOST: redis-container
       SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
     depends_on:
       postgres:
@@ -126,11 +128,11 @@ services:
     volumes:
       - ./logs/twitch:/app/logs
 
-  test_api:
+  test-api:
     build:
       context: .
       dockerfile: testApi/Dockerfile
-    container_name: test_api
+    container_name: test-api
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -150,13 +152,13 @@ services:
       rabbitmq:
         condition: service_started
     volumes:
-      - ./logs/test_api:/app/logs
+      - ./logs/test-api:/app/logs
 
-  profile_service:
+  profile-service:
     build:
       context: .
       dockerfile: profile/Dockerfile
-    container_name: profile_service
+    container_name: profile-service
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -168,7 +170,8 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
+      PROFILE_DB_NAME: profile_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/profile_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -187,11 +190,11 @@ services:
     volumes:
       - ./logs/profile:/app/logs
 
-  wallet_service:
+  wallet-service:
     build:
       context: .
       dockerfile: wallet/Dockerfile
-    container_name: wallet_service
+    container_name: wallet-service
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -203,7 +206,8 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
+      WALLET_DB_NAME: wallet_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/wallet_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -212,8 +216,9 @@ services:
       SPRING_RABBITMQ_PASSWORD: ${SPRING_RABBITMQ_PASSWORD}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
       JWT_SECRET: ${JWT_SECRET}
-      WALLET_KAFKA_LISTENER_ENABLED: "true"
-      WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT: "true"
+      WALLET_KAFKA_LISTENER_ENABLED: "false"
+      WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT: "false"
+      WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
     depends_on:
       postgres:
         condition: service_healthy
@@ -224,11 +229,11 @@ services:
     volumes:
       - ./logs/wallet:/app/logs
 
-  pokemon_service:
+  octopus-service:
     build:
       context: .
-      dockerfile: pokemonService/Dockerfile
-    container_name: pokemon_service
+      dockerfile: octopusService/Dockerfile
+    container_name: octopus-service
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -241,12 +246,21 @@ services:
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       JWT_SECRET: ${JWT_SECRET}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/twitch_monitor
+      OCTOPUS_DB_NAME: octopus_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${DB_PORT}/octopus_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      SPRING_DATA_REDIS_HOST: redis_container
+      SPRING_DATA_REDIS_HOST: redis-container
       SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
+      OCTOPUS_FIGHT_BASE_URL: http://fight-service:${FIGHT_SERVER_PORT}
+      OCTOPUS_FIGHT_PUBLIC_BASE_URL: http://localhost:${FIGHT_SERVER_PORT}
+
+      WALLET_BASE_URL: http://wallet-service:${SERVER_PORT}
+      WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
+      OCTOPUS_SPRITE_URL_TEMPLATE: http://localhost:8006/api/v1/octopus/images/octopus/%d.png
+      OCTOPUS_ITEM_ICON_URL_TEMPLATE: http://localhost:8006/api/v1/octopus/images/items/%d.png
+      OCTOPUS_SKILL_ICON_URL_TEMPLATE: http://localhost:8006/api/v1/octopus/images/skills/%d.png
     depends_on:
       postgres:
         condition: service_healthy
@@ -254,10 +268,32 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
-      wallet_service:
+      wallet-service:
+        condition: service_started
+      fight-service:
         condition: service_started
     volumes:
-      - ./logs/pokemon:/app/logs
+      - ./logs/octopus:/app/logs
+
+  fight-service:
+    build:
+      context: .
+      dockerfile: fightService/Dockerfile
+    container_name: fight-service
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${FIGHT_SERVER_PORT}:${FIGHT_SERVER_PORT}"
+    environment:
+      ASPNETCORE_URLS: http://+:${FIGHT_SERVER_PORT}
+      ConnectionStrings__FightDb: Host=postgres;Port=${DB_PORT};Database=fight_db;Username=${DB_USER};Password=${DB_PASSWORD}
+      Jwt__Secret: ${JWT_SECRET}
+      Metrics__Username: ${METRICS_USERNAME}
+      Metrics__Password: ${METRICS_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:

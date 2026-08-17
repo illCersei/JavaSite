@@ -1,0 +1,6 @@
+@WebApplication1FightService.Infrastructure_HostAddress = http://localhost:5168
+
+GET {{WebApplication1FightService.Infrastructure_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

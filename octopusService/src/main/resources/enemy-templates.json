@@ -1,0 +1,60 @@
+[
+  {
+    "id": "mob_coral_guard",
+    "name": "Coral Guard",
+    "tier": 1,
+    "stats": { "hp": 220, "attack": 18, "magicPower": 8, "armor": 12, "magicResist": 10, "speed": 14 },
+    "skills": [
+      {
+        "id": 9001,
+        "name": "Shell Bash",
+        "description": "Basic physical hit",
+        "elementType": "PHYSICAL",
+        "cooldownMs": 0,
+        "manaCost": 0,
+        "effects": [
+          {
+            "id": 1,
+            "effectType": "DAMAGE",
+            "elementType": "PHYSICAL",
+            "baseValue": 12,
+            "scalingStat": "ATTACK",
+            "scalingRatioBps": 6000,
+            "durationMs": null,
+            "tickMs": null,
+            "stackingRule": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mob_coral_king",
+    "name": "Coral King",
+    "tier": 1,
+    "stats": { "hp": 600, "attack": 28, "magicPower": 20, "armor": 18, "magicResist": 16, "speed": 12 },
+    "skills": [
+      {
+        "id": 9002,
+        "name": "Tidal Crush",
+        "description": "Boss slam",
+        "elementType": "PHYSICAL",
+        "cooldownMs": 2000,
+        "manaCost": 0,
+        "effects": [
+          {
+            "id": 2,
+            "effectType": "DAMAGE",
+            "elementType": "PHYSICAL",
+            "baseValue": 25,
+            "scalingStat": "ATTACK",
+            "scalingRatioBps": 8000,
+            "durationMs": null,
+            "tickMs": null,
+            "stackingRule": null
+          }
+        ]
+      }
+    ]
+  }
+]

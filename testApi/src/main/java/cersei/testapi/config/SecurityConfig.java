@@ -105,8 +105,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:5173",
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
                 "https://gorelov.net",
                 "https://www.gorelov.net"
         ));

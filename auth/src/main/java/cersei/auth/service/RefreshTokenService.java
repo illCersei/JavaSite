@@ -32,10 +32,22 @@ public class RefreshTokenService {
     }
 
     public RefreshToken validate(String token) {
-        return repository.findByToken(token)
+        RefreshToken refreshToken = repository.findByToken(token)
                 .orElseThrow(() -> new AuthException("Refresh token не найден или недействителен", HttpStatus.UNAUTHORIZED));
+
+        if (refreshToken.getExpiresAt().isBefore(Instant.now())) {
+            repository.delete(refreshToken);
+            throw new AuthException("Refresh token истёк", HttpStatus.UNAUTHORIZED);
+        }
+
+        return refreshToken;
     }
 
+    /** Инвалидирует старый токен и выдаёт новый на то же имя пользователя (ротация при каждом refresh). */
+    public String rotate(RefreshToken oldToken) {
+        repository.delete(oldToken);
+        return create(oldToken.getUserId());
+    }
 
     public void delete(String token) {
         Optional<RefreshToken> rt = repository.findByToken(token);

@@ -3,18 +3,23 @@ spring:
     name: profile
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${PROFILE_DB_NAME:profile_db}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         format_sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
 
   mvc:
     servlet:
@@ -25,7 +30,7 @@ spring:
       fail-on-unknown-properties: true
 
   kafka:
-    bootstrap-servers: kafka_container:${SPRING_KAFKA_PORT}
+    bootstrap-servers: kafka-container:${SPRING_KAFKA_PORT}
     consumer:
       group-id: auth-consumer-group
       auto-offset-reset: earliest

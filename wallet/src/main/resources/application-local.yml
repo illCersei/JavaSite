@@ -5,18 +5,23 @@ spring:
     name: wallet
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${WALLET_DB_NAME:wallet_db}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         format_sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
 
   mvc:
     servlet:
@@ -43,7 +48,7 @@ spring:
 
 management:
   server:
-    port: 9005
+    port: ${WALLET_MONITORING_PORT:10005}
   endpoints:
     web:
       exposure:
@@ -81,6 +86,7 @@ wallet:
   security:
     allow-arbitrary-credit-debit: ${WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT:false}
     privileged-roles: ${WALLET_PRIVILEGED_ROLES:ADMIN}
+    service-token: ${WALLET_SERVICE_TOKEN:}
   kafka:
     commands-topic: wallet.commands
     replies-topic: wallet.commands.replies
@@ -91,4 +97,4 @@ wallet:
     publish-interval-ms: 2000
 
 server:
-  port: 8005
+  port: ${WALLET_SERVER_PORT:8005}

@@ -2,6 +2,7 @@ package cersei.auth.exception;
 
 import cersei.common.error.errors.ApiError;
 import cersei.common.error.errors.ApiErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -50,6 +52,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleOther(Exception ex) {
+        log.error("Unhandled exception in auth service", ex);
         ApiError error = new ApiError("INTERNAL_ERROR", "Внутренняя ошибка сервера", null);
         return ResponseEntity.status(500).body(new ApiErrorResponse(List.of(error)));
     }

@@ -89,11 +89,17 @@ public class UserProfileImpl implements UserProfile{
 
 
     /**
-     * Создаем пустой профиль, который нам передает кафка при регситрации
+     * Создаем пустой профиль, который нам передает кафка при регситрации.
+     * Идемпотентно: at-least-once redelivery (рестарт консьюмера, ребаланс)
+     * не должно затирать уже кастомизированный профиль обратно на дефолт.
      * @param userId приходит в сообщении кафки
      */
     @Override
     public void createEmptyProfile(UUID userId) {
+        if (userProfileRepository.existsById(userId)) {
+            return;
+        }
+
         UserProfileModel userProfileModel = new UserProfileModel();
 
         userProfileModel.setUserId(userId);

@@ -17,7 +17,7 @@ import java.util.UUID;
 public class UserProfileController {
     private final UserProfileImpl userProfileService;
 
-    //Нужно сделать пабликПрофильДто
+    // TODO: Нужно сделать пабликПрофильДто + оно 401 всегда, подумать как это реализовать
     @GetMapping("/public/get/{userId}")
     UserProfileDto getPublicProfile(@PathVariable UUID userId){
         return userProfileService.getProfile(userId);
@@ -43,6 +43,7 @@ public class UserProfileController {
         return userProfileService.createProfile(uuid, dto);
     }
 
+    // TODO: Доработать она сейчас ничего даже не выкидывает
     @DeleteMapping("/private/delete/me")
     void deleteProfile(@AuthenticationPrincipal Jwt jwt){
         UUID uuid = UUID.fromString(jwt.getClaimAsString("uuid"));

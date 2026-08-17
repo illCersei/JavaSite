@@ -28,7 +28,7 @@ services:
 
   kafka:
     image: apache/kafka:latest
-    container_name: kafka_container
+    container_name: kafka-container
     restart: always
     environment:
       KAFKA_NODE_ID: 1
@@ -50,7 +50,7 @@ services:
       - default
       - monitoring_net
 
-  auth_service:
+  auth-service:
     image: ghcr.io/illcersei/auth-service:main
     restart: always
     extra_hosts:
@@ -62,7 +62,8 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+      AUTH_DB_NAME: auth_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/auth_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
@@ -82,7 +83,7 @@ services:
         aliases:
           - auth-service
 
-  test_api:
+  test-api:
     image: ghcr.io/illcersei/test-api:main
     restart: always
     extra_hosts:
@@ -101,14 +102,14 @@ services:
     depends_on:
       - rabbitmq
     volumes:
-      - ./logs/test_api:/app/logs
+      - ./logs/test-api:/app/logs
     networks:
       default:
       monitoring_net:
         aliases:
           - test-service
 
-  profile_service:
+  profile-service:
     image: ghcr.io/illcersei/profile-service:main
     restart: always
     extra_hosts:
@@ -120,7 +121,8 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+      PROFILE_DB_NAME: profile_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/profile_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
@@ -139,7 +141,7 @@ services:
         aliases:
           - profile-service
 
-  wallet_service:
+  wallet-service:
     image: ghcr.io/illcersei/wallet-service:main
     restart: always
     extra_hosts:
@@ -151,7 +153,8 @@ services:
       METRICS_PASSWORD: ${METRICS_PASSWORD}
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+      WALLET_DB_NAME: wallet_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/wallet_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_RABBITMQ_HOST: ${SPRING_RABBITMQ_HOST}
@@ -160,8 +163,9 @@ services:
       SPRING_RABBITMQ_PASSWORD: ${SPRING_RABBITMQ_PASSWORD}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
       JWT_SECRET: ${JWT_SECRET}
-      WALLET_KAFKA_LISTENER_ENABLED: "true"
-      WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT: "true"
+      WALLET_KAFKA_LISTENER_ENABLED: "false"
+      WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT: "false"
+      WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
     depends_on:
       - kafka
     volumes:
@@ -172,8 +176,8 @@ services:
         aliases:
           - wallet-service
 
-  pokemon_service:
-    image: ghcr.io/illcersei/pokemon-service:main
+  octopus-service:
+    image: ghcr.io/illcersei/octopus-service:main
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -185,26 +189,53 @@ services:
       MONITORING_PORT: ${MONITORING_PORT}
       SERVER_PORT: ${SERVER_PORT}
       JWT_SECRET: ${JWT_SECRET}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/twitch_monitor
+      OCTOPUS_DB_NAME: octopus_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/octopus_db
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_DATA_REDIS_HOST: ${SPRING_DATA_REDIS_HOST}
       SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
+      OCTOPUS_FIGHT_BASE_URL: http://fight-service:${FIGHT_SERVER_PORT}
+      OCTOPUS_FIGHT_PUBLIC_BASE_URL: https://gorelov.net
+      OCTOPUS_SPRITE_URL_TEMPLATE: https://gorelov.net/api/v1/octopus/images/octopus/%d.png
+      OCTOPUS_ITEM_ICON_URL_TEMPLATE: https://gorelov.net/api/v1/octopus/images/items/%d.png
+      OCTOPUS_SKILL_ICON_URL_TEMPLATE: https://gorelov.net/api/v1/octopus/images/skills/%d.png
+      WALLET_BASE_URL: http://wallet-service:${SERVER_PORT}
+      WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
     depends_on:
       redis:
         condition: service_healthy
       kafka:
         condition: service_started
-      wallet_service:
+      wallet-service:
         condition: service_started
     volumes:
-      - ./logs/pokemon:/app/logs
+      - ./logs/octopus:/app/logs
     networks:
       default:
       monitoring_net:
         aliases:
-          - pokemon-service
+          - octopus-service
+
+  fight-service:
+    image: ghcr.io/illcersei/fight-service:main
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${FIGHT_SERVER_PORT}:${FIGHT_SERVER_PORT}"
+    environment:
+      ASPNETCORE_URLS: http://+:${FIGHT_SERVER_PORT}
+      ConnectionStrings__FightDb: Host=${DB_HOST};Port=${DB_PORT};Database=fight_db;Username=${DB_USER};Password=${DB_PASSWORD}
+      Jwt__Secret: ${JWT_SECRET}
+      Metrics__Username: ${METRICS_USERNAME}
+      Metrics__Password: ${METRICS_PASSWORD}
+    networks:
+      default:
+      monitoring_net:
+        aliases:
+          - fight-service
 
 volumes:
   redis_data:

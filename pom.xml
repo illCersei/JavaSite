@@ -13,7 +13,7 @@
         <module>common</module>
         <module>profile</module>
         <module>wallet</module>
-        <module>pokemonService</module>
+        <module>octopusService</module>
     </modules>
 
     <parent>

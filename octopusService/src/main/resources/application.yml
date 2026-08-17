@@ -1,0 +1,108 @@
+spring:
+  application:
+    name: octopusService
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${OCTOPUS_DB_NAME:octopus_db}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  mvc:
+    servlet:
+      path: /api/v1/octopus
+
+  cache:
+    type: redis
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+  kafka:
+    bootstrap-servers: kafka-container:9092
+    consumer:
+      group-id: octopus-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      missing-topics-fatal: false
+
+management:
+  server:
+    port: ${MONITORING_PORT}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+metrics:
+  username: ${METRICS_USERNAME}
+  password: ${METRICS_PASSWORD}
+
+server:
+  port: ${SERVER_PORT:8006}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+wallet:
+  base-url: ${WALLET_BASE_URL:http://wallet-service:8005}
+  service-token: ${WALLET_SERVICE_TOKEN:}
+
+octopus:
+  instance-id: ${OCTOPUS_INSTANCE_ID:}
+  security:
+    privileged-roles: ${OCTOPUS_PRIVILEGED_ROLES:ADMIN}
+  sprite-url-template: ${OCTOPUS_SPRITE_URL_TEMPLATE:https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/%d.png}
+  item-icon-url-template: ${OCTOPUS_ITEM_ICON_URL_TEMPLATE:http://localhost:8006/api/v1/octopus/images/items/%d.png}
+  skill-icon-url-template: ${OCTOPUS_SKILL_ICON_URL_TEMPLATE:http://localhost:8006/api/v1/octopus/images/skills/%d.png}
+  gacha:
+    cost-minor: ${OCTOPUS_GACHA_COST_MINOR:100}
+    max-template-id: ${OCTOPUS_GACHA_MAX_TEMPLATE_ID:6}
+  loot:
+    tier-weights:
+      1: ${OCTOPUS_LOOT_TIER_1_WEIGHT:70}
+      2: ${OCTOPUS_LOOT_TIER_2_WEIGHT:30}
+    coin-minor-by-tier:
+      1: ${OCTOPUS_LOOT_COIN_TIER_1:50}
+      2: ${OCTOPUS_LOOT_COIN_TIER_2:150}
+    failed-run-retention-bps: ${OCTOPUS_DUNGEON_FAILED_RETENTION_BPS:5000}
+  kafka:
+    gacha-events-topic: ${OCTOPUS_KAFKA_GACHA_TOPIC:octopus.gacha.events}
+  fight:
+    base-url: ${OCTOPUS_FIGHT_BASE_URL:http://localhost:22822}
+    # Same fightService, but the address the BROWSER can reach - not necessarily the
+    # same as base-url (e.g. docker-compose's base-url is the internal container DNS
+    # name, which only octopusService can resolve; the frontend needs a host-mapped
+    # address). Defaults to base-url, which is correct whenever both sides run on the
+    # same host (IDE-run mode).
+    public-base-url: ${OCTOPUS_FIGHT_PUBLIC_BASE_URL:${octopus.fight.base-url}}
+
+logging:
+  level:
+    org.springframework: info
+    cersei.octopusservice: info
+  file:
+    name: logs/octopusservice.log
