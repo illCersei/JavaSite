@@ -163,11 +163,6 @@ services:
       SPRING_RABBITMQ_PASSWORD: ${SPRING_RABBITMQ_PASSWORD}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
       JWT_SECRET: ${JWT_SECRET}
-      # Kafka credit/debit command channel has no in-repo producer and only checks
-      # JWT ownership (no role/cost gate) - keep it off until something actually
-      # needs it. Arbitrary direct credit/debit is admin-only by design (see
-      # WalletSecurityProperties) - do not flip these back to "true" without also
-      # adding a real authorization story for whichever caller needs them.
       WALLET_KAFKA_LISTENER_ENABLED: "false"
       WALLET_ALLOW_ARBITRARY_CREDIT_DEBIT: "false"
       WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
@@ -201,9 +196,9 @@ services:
       SPRING_DATA_REDIS_HOST: ${SPRING_DATA_REDIS_HOST}
       SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT}
       SPRING_KAFKA_PORT: ${SPRING_KAFKA_PORT}
-      # wallet-service listens internally on the shared SERVER_PORT, not its
-      # host-mapped port (8005) - application.yml's default assumes the old
-      # per-service-port convention and is wrong here.
+      OCTOPUS_FIGHT_BASE_URL: http://fight-service:${FIGHT_SERVER_PORT}
+      OCTOPUS_FIGHT_PUBLIC_BASE_URL: https://gorelov.net
+      OCTOPUS_SPRITE_URL_TEMPLATE: https://gorelov.net/api/v1/octopus/images/octopus/%d.png
       WALLET_BASE_URL: http://wallet-service:${SERVER_PORT}
       WALLET_SERVICE_TOKEN: ${WALLET_SERVICE_TOKEN}
     depends_on:
@@ -220,6 +215,25 @@ services:
       monitoring_net:
         aliases:
           - octopus-service
+
+  fight-service:
+    image: ghcr.io/illcersei/fight-service:main
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${FIGHT_SERVER_PORT}:${FIGHT_SERVER_PORT}"
+    environment:
+      ASPNETCORE_URLS: http://+:${FIGHT_SERVER_PORT}
+      ConnectionStrings__FightDb: Host=${DB_HOST};Port=${DB_PORT};Database=fight_db;Username=${DB_USER};Password=${DB_PASSWORD}
+      Jwt__Secret: ${JWT_SECRET}
+      Metrics__Username: ${METRICS_USERNAME}
+      Metrics__Password: ${METRICS_PASSWORD}
+    networks:
+      default:
+      monitoring_net:
+        aliases:
+          - fight-service
 
 volumes:
   redis_data:
