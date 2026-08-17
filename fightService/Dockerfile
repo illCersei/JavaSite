@@ -13,6 +13,17 @@ RUN dotnet publish src/FightService.API/FightService.API.csproj -c Release -o /a
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
-COPY --from=build /app .
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R app:app /app
+COPY --from=build --chown=app:app /app .
+
+USER app
+EXPOSE 8007
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl --fail --silent --show-error -o /dev/null http://127.0.0.1:8007/health || exit 1
 
 ENTRYPOINT ["dotnet", "FightService.API.dll"]

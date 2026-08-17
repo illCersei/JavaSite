@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,6 +11,7 @@ using FightService.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +54,7 @@ builder.Services
         };
     });
 builder.Services.AddAuthorization();
+builder.Services.AddHealthChecks();
 
 string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 const string corsPolicyName = "fight-service-cors";
@@ -93,6 +96,57 @@ app.Use(async (context, next) =>
 app.UseCors(corsPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHttpMetrics();
+
+app.MapHealthChecks("/health");
+
+string metricsUsername = builder.Configuration["Metrics:Username"] ?? "";
+string metricsPassword = builder.Configuration["Metrics:Password"] ?? "";
+app.MapMetrics("/metrics").Add(endpointBuilder =>
+{
+    var previous = endpointBuilder.RequestDelegate!;
+    endpointBuilder.RequestDelegate = async context =>
+    {
+        if (string.IsNullOrEmpty(metricsUsername))
+        {
+            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            return;
+        }
+
+        string? header = context.Request.Headers.Authorization;
+        if (header is null || !header.StartsWith("Basic ", StringComparison.Ordinal))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.Headers.WWWAuthenticate = "Basic realm=\"metrics\"";
+            return;
+        }
+
+        string decoded;
+        try
+        {
+            decoded = Encoding.UTF8.GetString(Convert.FromBase64String(header["Basic ".Length..]));
+        }
+        catch (FormatException)
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
+        int separatorIndex = decoded.IndexOf(':');
+        string user = separatorIndex < 0 ? decoded : decoded[..separatorIndex];
+        string pass = separatorIndex < 0 ? "" : decoded[(separatorIndex + 1)..];
+
+        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(user), Encoding.UTF8.GetBytes(metricsUsername))
+            || !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(pass), Encoding.UTF8.GetBytes(metricsPassword)))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
+        await previous(context);
+    };
+});
 
 app.MapPost("/fight/start", async (
         FightStartRequest request,
