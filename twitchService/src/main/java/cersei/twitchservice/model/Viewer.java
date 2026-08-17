@@ -16,9 +16,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Viewer {
     @Id
-    long id;
+    int id;
 
-    long gameId;
+    int gameId;
 
     LocalDateTime dateTime;
 

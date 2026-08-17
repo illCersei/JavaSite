@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Entity
 public class Games {
     @Id
-    long gameId;
+    int gameId;
 
     String gameName;
 }

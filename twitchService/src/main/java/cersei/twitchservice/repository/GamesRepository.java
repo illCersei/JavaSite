@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 //PagingAndSortingRepository нужно сделать
 @Repository
-public interface GamesRepository extends JpaRepository<Games, Long> {
+public interface GamesRepository extends JpaRepository<Games, Integer> {
 }

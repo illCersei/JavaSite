@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class GamesDto {
-    private Long gameId;
+    private Integer gameId;
     private String gameName;
 }
