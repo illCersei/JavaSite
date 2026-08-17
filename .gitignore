@@ -47,10 +47,6 @@ application.properties
 
 *.gz
 
-prometheus.yml
-docker-compose.metrics.backend.yml
-docker-compose.metrics.twitch.yml
-/monitoring/
 /octopusService/src/main/resources/static/images/octopus/1.png
 /octopusService/src/main/resources/static/images/octopus/2.png
 /octopusService/src/main/resources/static/images/octopus/3.png

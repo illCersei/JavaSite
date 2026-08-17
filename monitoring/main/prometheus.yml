@@ -1,0 +1,111 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "auth-service"
+    metrics_path: /actuator/prometheus
+    basic_auth:
+      username: ${METRICS_USERNAME}
+      password: ${METRICS_PASSWORD}
+    static_configs:
+      - targets: ["auth-service:9000"]
+
+  - job_name: "test-service"
+    metrics_path: /actuator/prometheus
+    basic_auth:
+      username: ${METRICS_USERNAME}
+      password: ${METRICS_PASSWORD}
+    static_configs:
+      - targets: ["test-service:9000"]
+
+  - job_name: "profile-service"
+    metrics_path: /actuator/prometheus
+    basic_auth:
+      username: ${METRICS_USERNAME}
+      password: ${METRICS_PASSWORD}
+    static_configs:
+      - targets: ["profile-service:9000"]
+
+  - job_name: "wallet-service"
+    metrics_path: /actuator/prometheus
+    basic_auth:
+      username: ${METRICS_USERNAME}
+      password: ${METRICS_PASSWORD}
+    static_configs:
+      - targets: ["wallet-service:9000"]
+
+  - job_name: "octopus-service"
+    metrics_path: /actuator/prometheus
+    basic_auth:
+      username: ${METRICS_USERNAME}
+      password: ${METRICS_PASSWORD}
+    static_configs:
+      - targets: ["octopus-service:9000"]
+
+  - job_name: "fight-service"
+    metrics_path: /metrics
+    basic_auth:
+      username: ${METRICS_USERNAME}
+      password: ${METRICS_PASSWORD}
+    static_configs:
+      - targets: ["fight-service:8007"]
+
+  - job_name: "twitch-service"
+    scheme: https
+    metrics_path: /twitch-service/actuator/prometheus
+    basic_auth:
+      username: ${METRICS_USERNAME}
+      password: ${METRICS_PASSWORD}
+    static_configs:
+      - targets: ["gorelov.net"]
+        labels:
+          env: "prod"
+          project: "my-project"
+
+  - job_name: "node-exporter-local"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:9100"]
+        labels:
+          env: "prod"
+          project: "my-project"
+
+  - job_name: "cadvisor-local"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:9888"]
+        labels:
+          env: "prod"
+          project: "my-project"
+
+  - job_name: "node-exporter-twitch"
+    scheme: https
+    metrics_path: /node-exporter/metrics
+    basic_auth:
+      username: ${METRICS_USERNAME}
+      password: ${METRICS_PASSWORD}
+    static_configs:
+      - targets: ["gorelov.net"]
+        labels:
+          env: "prod"
+          project: "my-project"
+
+  - job_name: "cadvisor-twitch"
+    scheme: https
+    metrics_path: /cadvisor/metrics
+    basic_auth:
+      username: ${METRICS_USERNAME}
+      password: ${METRICS_PASSWORD}
+    static_configs:
+      - targets: ["gorelov.net"]
+        labels:
+          env: "prod"
+          project: "my-project"
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+        labels:
+          env: "prod"
+          project: "my-project"
