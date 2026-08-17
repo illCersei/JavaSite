@@ -44,17 +44,3 @@ CREATE TABLE dungeon_run_loot
     quantity         INTEGER NOT NULL DEFAULT 0,
     coins_minor      BIGINT  NOT NULL DEFAULT 0
 );
-
-INSERT INTO dungeon_template (id, name, description, tier, entry_cost_minor, room_count)
-VALUES (1, 'Coral Caves', 'Starter dungeon with chest and battle rooms.', 1, 0, 3)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO dungeon_room_template (
-    dungeon_template_id, room_index, room_type,
-    enemy_template_id, loot_item_id, loot_quantity, loot_coins_minor
-)
-VALUES
-    (1, 0, 'CHEST', NULL, 1, 1, 25),
-    (1, 1, 'BATTLE', 'mob_coral_guard', NULL, 0, 50),
-    (1, 2, 'BOSS', 'mob_coral_king', 5, 1, 100)
-ON CONFLICT (dungeon_template_id, room_index) DO NOTHING;
