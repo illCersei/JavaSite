@@ -47,12 +47,6 @@ application.properties
 
 *.gz
 
-/octopusService/src/main/resources/static/images/octopus/1.png
-/octopusService/src/main/resources/static/images/octopus/2.png
-/octopusService/src/main/resources/static/images/octopus/3.png
-/octopusService/src/main/resources/static/images/octopus/4.png
-/octopusService/src/main/resources/static/images/octopus/5.png
-/octopusService/src/main/resources/static/images/octopus/6.png
 /docs/ARCHITECTURE_ROADMAP.md
 /sql/bootstrap_octopus_test_data_for_user.sql
 /docs/FRONTEND_POKEMON_TO_OCTOPUS.md
