@@ -22,5 +22,5 @@ public class Viewer {
 
     LocalDateTime dateTime;
 
-    long viewers;
+    int viewers;
 }

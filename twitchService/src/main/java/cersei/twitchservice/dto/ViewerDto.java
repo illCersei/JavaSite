@@ -12,9 +12,9 @@ import java.time.LocalDateTime;
 @Builder
 public class ViewerDto {
     private LocalDateTime dateTime;
-    private Long maxViewers;
+    private Integer maxViewers;
 
-    public ViewerDto(LocalDate dateTime, Long maxViewers) {
+    public ViewerDto(LocalDate dateTime, Integer maxViewers) {
         this.dateTime = dateTime.atStartOfDay();
         this.maxViewers = maxViewers;
     }
