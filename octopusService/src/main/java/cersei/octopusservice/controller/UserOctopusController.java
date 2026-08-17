@@ -2,6 +2,7 @@ package cersei.octopusservice.controller;
 
 import cersei.octopusservice.config.OctopusSecurityProperties;
 import cersei.octopusservice.dto.CombatSnapshotDto;
+import cersei.octopusservice.dto.RenameOctopusRequest;
 import cersei.octopusservice.dto.SummonOctopusRequest;
 import cersei.octopusservice.dto.UserOctopusAddedExpDto;
 import cersei.octopusservice.dto.UserOctopusAddedStatsDto;
@@ -83,5 +84,13 @@ public class UserOctopusController {
                                                @PathVariable StatsForUpgrade stat){
         UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
         return userOctopusProgressionService.addStatsToOctopus(userId, id, stat);
+    }
+
+    @PatchMapping("{id}/nickname")
+    UserOctopusDto renameOctopus(@AuthenticationPrincipal Jwt jwt,
+                                  @PathVariable int id,
+                                  @RequestBody RenameOctopusRequest request) {
+        UUID userId = UUID.fromString(jwt.getClaimAsString("uuid"));
+        return userOctopusProgressionService.renameOctopus(userId, id, request.nickname());
     }
 }

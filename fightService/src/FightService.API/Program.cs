@@ -56,7 +56,11 @@ builder.Services.AddAuthorization();
 string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 const string corsPolicyName = "fight-service-cors";
 builder.Services.AddCors(options => options.AddPolicy(corsPolicyName, policy => policy
-    .WithOrigins(allowedOrigins)
+    .SetIsOriginAllowed(origin =>
+        allowedOrigins.Contains(origin) ||
+        (Uri.TryCreate(origin, UriKind.Absolute, out Uri? originUri)
+            && originUri.Scheme == Uri.UriSchemeHttp
+            && originUri.Host == "localhost"))
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials()));

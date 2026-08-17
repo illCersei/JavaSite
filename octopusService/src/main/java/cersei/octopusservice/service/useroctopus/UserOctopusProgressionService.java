@@ -2,6 +2,7 @@ package cersei.octopusservice.service.useroctopus;
 
 import cersei.octopusservice.dto.UserOctopusAddedExpDto;
 import cersei.octopusservice.dto.UserOctopusAddedStatsDto;
+import cersei.octopusservice.dto.UserOctopusDto;
 import cersei.octopusservice.exception.OctopusNotFoundException;
 import cersei.octopusservice.model.UserOctopus;
 import cersei.octopusservice.repository.UserOctopusRepository;
@@ -68,6 +69,16 @@ public class UserOctopusProgressionService {
                 startLevel,
                 progress.level()
         );
+    }
+
+    public UserOctopusDto renameOctopus(
+            UUID userId,
+            Integer userOctopusId,
+            String nickname
+    ) {
+        UserOctopus userOctopus = getUserOctopus(userId, userOctopusId);
+        userOctopus.setNickname(nickname);
+        return assembler.toDto(userOctopus);
     }
 
     public UserOctopusAddedStatsDto addStatsToOctopus(
