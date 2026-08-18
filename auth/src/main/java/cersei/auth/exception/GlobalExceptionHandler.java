@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -48,6 +49,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleBadJson() {
         ApiError error = new ApiError("BAD_REQUEST_BODY", "Некорректное тело запроса", null);
         return ResponseEntity.badRequest().body(new ApiErrorResponse(List.of(error)));
+    }
+
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ResponseEntity<ApiErrorResponse> handleMissingCookie(MissingRequestCookieException ex) {
+        log.debug("Отсутствует обязательная кука {}", ex.getCookieName());
+        ApiError error = new ApiError("MISSING_REFRESH_TOKEN", "Не авторизован: отсутствует refreshToken", null);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiErrorResponse(List.of(error)));
     }
 
     @ExceptionHandler(Exception.class)
