@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: postgres_local
-    restart: unless-stopped
+    restart: "no"
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${DB_USER}
@@ -21,7 +21,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis_local
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "127.0.0.1:${SPRING_DATA_REDIS_PORT}:6379"
     volumes:
@@ -35,7 +35,7 @@ services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq_local
-    restart: unless-stopped
+    restart: "no"
     environment:
       RABBITMQ_DEFAULT_USER: ${SPRING_RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${SPRING_RABBITMQ_PASSWORD}
@@ -54,7 +54,7 @@ services:
   kafka:
     image: apache/kafka:latest
     container_name: kafka_local
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "127.0.0.1:${SPRING_KAFKA_PORT}:9092"
     environment:

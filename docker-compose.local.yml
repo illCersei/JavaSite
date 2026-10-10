@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: postgres-container
-    restart: always
+    restart: on-failure
     environment:
       POSTGRES_DB: twitch_monitor
       POSTGRES_USER: ${DB_USER}
@@ -21,7 +21,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis-container
-    restart: always
+    restart: on-failure
     volumes:
       - redis_data:/data
     healthcheck:
@@ -33,7 +33,7 @@ services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq-container
-    restart: always
+    restart: on-failure
     environment:
       RABBITMQ_DEFAULT_USER: ${SPRING_RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${SPRING_RABBITMQ_PASSWORD}
@@ -44,7 +44,7 @@ services:
   kafka:
     image: apache/kafka:latest
     container_name: kafka-container
-    restart: always
+    restart: on-failure
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -67,7 +67,7 @@ services:
       context: .
       dockerfile: auth/Dockerfile
     container_name: auth-service
-    restart: always
+    restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -103,7 +103,7 @@ services:
       context: .
       dockerfile: twitchService/Dockerfile
     container_name: twitch-service
-    restart: always
+    restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -133,7 +133,7 @@ services:
       context: .
       dockerfile: testApi/Dockerfile
     container_name: test-api
-    restart: always
+    restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -159,7 +159,7 @@ services:
       context: .
       dockerfile: profile/Dockerfile
     container_name: profile-service
-    restart: always
+    restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -195,7 +195,7 @@ services:
       context: .
       dockerfile: wallet/Dockerfile
     container_name: wallet-service
-    restart: always
+    restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -234,7 +234,7 @@ services:
       context: .
       dockerfile: octopusService/Dockerfile
     container_name: octopus-service
-    restart: always
+    restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -280,7 +280,7 @@ services:
       context: .
       dockerfile: fightService/Dockerfile
     container_name: fight-service
-    restart: always
+    restart: on-failure
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
