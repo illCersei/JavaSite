@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Backend" type="CompoundRunConfigurationType">
+    <toRun name="Auth" type="SpringBootApplicationConfigurationType" />
+    <toRun name="Octopus" type="SpringBootApplicationConfigurationType" />
+    <toRun name="Profile" type="SpringBootApplicationConfigurationType" />
+    <toRun name="TestApi" type="SpringBootApplicationConfigurationType" />
+    <toRun name="Twitch" type="SpringBootApplicationConfigurationType" />
+    <toRun name="Wallet" type="SpringBootApplicationConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>
